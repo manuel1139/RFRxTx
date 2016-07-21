@@ -7,10 +7,10 @@
 #include "rf_bit_stream.h"
 #include "system_config.h"
 
-#define HI_TO_LOW_LOW 0x43F
-#define HI_TO_LOW_HIGH 0x7B2
-#define LOW_TO_HIGH_LOW 0x3C8
-#define LOW_TO_HIGH_HIGH 0x829
+#define LOW_1 0x43F
+#define HIGH_1 0x7B2
+#define LOW_0 0x3C8
+#define HIGH_0 0x829
 
 #define INIT_EDGE 0
 #define MAX_BYTES 4
@@ -44,8 +44,11 @@ void ResetReceiverFsm() {
     rcv_code.dbyte[3] = 0;
 }
 
-void SendData();
-void TestXX();;
+void SndData();
+void XferData();
+void TestXX();
+void StopSender();
+
 void ResetReceiverFsm();
 
 void StartReceiver() {
@@ -119,29 +122,32 @@ void Receive(unsigned int bit_time) {
 
 void StartSender() {
     OpenTimer3(T3_16BIT_RW &
-            T3_PS_1_8 &
+            T3_PS_1_1 &
             T3_SOURCE_INT);
 
     RF_OUT = INIT_EDGE;
+}
+
+void StopSender() {
+    CloseTimer3();
 }
 struct ircode_t myPrtCode;
 
 void SendSW1() {
     StartSender();
-    
+
     snd_code.hdr_cnt = 0x03F0;
     snd_code.dbyte[0] = 0x0B;
     snd_code.dbyte[1] = 0x00;
     snd_code.dbyte[2] = 0x11;
 
     sender_fsm.state = header;
-    //SendData();
-    TestXX();
+    SndData();
 }
 
-void SendData() {
+void XferData() {
     uint8_t byte_nr, bit_idx;
-    uint8_t tmp;
+    static uint8_t tmp;
     static uint8_t bit_cnt = 19;
 
     switch (sender_fsm.state) {
@@ -160,18 +166,67 @@ void SendData() {
             if (bit_cnt > 11) byte_nr = 2;
 
             bit_idx = bit_cnt >> 3;
-            tmp = snd_code.dbyte[byte_nr] & ( 1 << (bit_cnt - bit_idx * 8) );
-            if (tmp) WriteTimer3(0xFFFF - 0xABCD); else {
-                WriteTimer3(0xFFFF - 0x1234); 
+            tmp = snd_code.dbyte[byte_nr] & (1 << (bit_cnt - bit_idx * 8));
+            if (tmp) WriteTimer3(0xFFFF - LOW_1);
+            else {
+                WriteTimer3(0xFFFF - LOW_0);
             }
-            
+
             sender_fsm.state = second_edge;
             break;
         case second_edge:
-            tmp = snd_code.dbyte[byte_nr] & ( 1 << bit_cnt );
-            if (tmp) WriteTimer3(0xFFFF - 0xABCD);
-
+            RF_OUT = ~RF_OUT;
+            if (tmp) WriteTimer3(0xFFFF - HIGH_1);
+            else {
+                WriteTimer3(0xFFFF - HIGH_0);
+            }
             sender_fsm.state = first_edge;
+            break;
+        case done:
+            StopSender();
+            break;
+        default:
+            break;
+    }
+}
+
+void SndData() {
+    uint8_t byte_nr, bit_idx;
+    uint8_t tmp;
+    static uint8_t bit_cnt = 19;
+
+    switch (sender_fsm.state) {
+        case idle:
+            break;
+        case header:
+            RF_OUT = ~RF_OUT;
+            WriteTimer3(0xFFFF - snd_code.hdr_cnt);
+            sender_fsm.state = first_edge;
+            break;
+        case first_edge:
+            RF_OUT = ~RF_OUT;
+
+            if (bit_cnt > 15) byte_nr = 0;
+            if (bit_cnt >= 15 && bit_cnt <= 8) byte_nr = 1;
+            if (bit_cnt <= 7) byte_nr = 2;
+
+            bit_idx = bit_cnt >> 3;
+            tmp = snd_code.dbyte[byte_nr] & (1 << (bit_cnt - bit_idx * 8));
+
+            if (tmp) WriteTimer3(0xFFFF - LOW_1);
+            else {
+                WriteTimer3(0xFFFF - LOW_0);
+            }
+            cnt--;
+            sender_fsm.state = second_edge;
+            break;
+        case second_edge:
+            RF_OUT = ~RF_OUT;
+            if (tmp) WriteTimer3(0xFFFF - HIGH_1);
+            else {
+                WriteTimer3(0xFFFF - HIGH_0);
+            }
+            if (cnt > 0) sender_fsm.state = first_edge;
             break;
         case done:
 
@@ -185,21 +240,23 @@ void TestXX() {
     uint8_t byte_nr, bit_idx;
     uint8_t tmp;
     static int8_t bit_cnt = 19;
-    
-    do {
-            if (bit_cnt > 15) byte_nr = 0;
-            if (bit_cnt >= 15 && bit_cnt <= 8) byte_nr = 1;
-            if (bit_cnt <= 7) byte_nr = 2;
 
-            bit_idx = bit_cnt >> 3;
-            tmp = snd_code.dbyte[byte_nr] & ( 1 << (bit_cnt - bit_idx * 8) );
-            
-            if (tmp) WriteTimer3(0xFFFF - 0xABCD); else {
-                WriteTimer3(0xFFFF - 0x1234); 
-            }
+    do {
+        if (bit_cnt > 15) byte_nr = 0;
+        if (bit_cnt >= 15 && bit_cnt <= 8) byte_nr = 1;
+        if (bit_cnt <= 7) byte_nr = 2;
+
+        bit_idx = bit_cnt >> 3;
+        tmp = snd_code.dbyte[byte_nr] & (1 << (bit_cnt - bit_idx * 8));
+
+        if (tmp) WriteTimer3(0xFFFF - 0xABCD);
+        else {
+            WriteTimer3(0xFFFF - 0x1234);
+        }
         bit_cnt--;
     } while (bit_cnt >= 0);
 }
+
 void IRRcvISR(void) {
     if (PIR1bits.CCP1IF) {
 
@@ -217,7 +274,8 @@ void IRRcvISR(void) {
     }
 
     if (PIR2bits.TMR3IF) {
-        SendData();
+        //XferData();
+        SndData();
         PIR2bits.TMR3IF = 0;
     }
 }

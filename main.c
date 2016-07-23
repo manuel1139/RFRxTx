@@ -66,7 +66,7 @@
 
 // CONFIG7H
 #pragma config EBTRB = OFF      // Boot Block Table Read Protection bit (Boot block (000000-0007FFh) is not protected from table reads executed in other blocks)
-
+/*
 void putch(unsigned char data) {
     while (!PIR1bits.TXIF) // wait until the transmitter is ready
         continue;
@@ -77,19 +77,16 @@ void init_uart(void) {
     TXSTAbits.TXEN = 1; // enable transmitter
     RCSTAbits.SPEN = 1; // enable serial port
 }
-
+*/
 int main(void) {
 
-    init_uart();
+//    init_uart();
     printf("starting\n");
     SYSTEM_Initialize();
-
-    //StartReceiver();
+    StartReceiver();
     SendSW1();
     while (1) {
     }
 }
 
-void high_priority interrupt high_isr(void) {
-    IRRcvISR();
-}
+

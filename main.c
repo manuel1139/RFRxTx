@@ -84,7 +84,7 @@ int main(void) {
     printf("starting\n");
     SYSTEM_Initialize();
     StartReceiver();
-    SendSW1();
+    //SendSW1();
     while (1) {
     }
 }

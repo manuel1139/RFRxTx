@@ -12,7 +12,7 @@
 #define LOW_0 0x3C8
 #define HIGH_0 0x829
 
-#define INIT_EDGE 0
+#define ACTIVE_LOW 0
 #define MAX_BYTES 4
 
 enum fsm_state {
@@ -57,7 +57,7 @@ void StartReceiver() {
     IPR1bits.CCP1IP = 1; //Timer 1 as source
     RCONbits.IPEN = 1; //Interrupt priority
 
-    if (INIT_EDGE == 1) {
+    if (ACTIVE_LOW) {
         OpenCapture1(C1_EVERY_FALL_EDGE &
                 CAPTURE_INT_ON);
     } else {
@@ -129,13 +129,14 @@ void StartSender() {
             T3_PS_1_8 &
             T3_SOURCE_INT);
 
-    RF_OUT = INIT_EDGE;
+    RF_OUT = ACTIVE_LOW;
 }
 
 void StopSender() {
     CloseTimer3();
 }
 struct ircode_t myPrtCode;
+
 
 void SendSW1() {
     StartSender();
@@ -198,7 +199,7 @@ void SndData() {
             break;
         case done:
             //StopSender();
-            RF_OUT = 0;
+            RF_OUT = ~RF_OUT;
             bit_cnt = 19;
             sender_fsm.state = header;
            snd_code.dbyte[2] == 0x82 ? snd_code.dbyte[2] = 0x93 : snd_code.dbyte[2] = 0x82;
@@ -226,6 +227,7 @@ void high_priority interrupt high_isr(void) {
         // get the hi->lo lo->hi transition
         CCP1CONbits.CCP1M0 = ~CCP1CONbits.CCP1M0; //invert  edge detection
         Receive(ReadCapture1());
+        //RecvRaw(ReadCapture1());
     }
 
     if (PIR1bits.TMR1IF) {
@@ -241,73 +243,17 @@ void high_priority interrupt high_isr(void) {
 }
 
 
+uint16_t edge_time[150];
 
-/*
-    void RFSend() {
-        RF_OUT = ~RF_OUT;
+void RecvRaw(unsigned int bit_time) {
 
-        if (cntr < 40) {
-            WriteTimer3(0xFFFF - code_stream[cntr]);
-            cntr++;
-        } else {
-            RF_OUT = INIT_EDGE;
-            cntr = 0;
+    static uint8_t edge_cnt = 0;
 
-            for (int i = 0; i < 1000; i++) {
-                cntr = 0;
-            }
-        }
-    }
-
- */
-
-
-
-/*
-void DecodeSpace(unsigned int bit_time) {
-    if (fsm.have_header == 0 && fsm.initiating_edge == 0) { //check for the first edge
-        fsm.initiating_edge = 1;
-    } else if (fsm.have_header == 0 && fsm.initiating_edge == 1) {
-        //next value; time between init_edge and now
-        //ist the header time
-        if (bit_time < (MIN_HEADER_TIME)) {
-            //too short - not a header
-            ResetDsm();
-        } else {
-            fsm.have_header = 1;
-        }
+    if (edge_cnt < 150) {
+        edge_time[edge_cnt] = bit_time;
+        edge_cnt++;
     } else {
-        //header receiver start decding bits
-        if (bit_time > BIT_AVG_TIME) { //greater than avg bit time assue positive bit
-            //            ir_code.code <<= 1;
-            //            ir_code.code |= 1;
-        } else {
-            //            ir_code.code <<= 1;
-        }
-        cnt[fsm.bit_cnt]=bit_time;
-        fsm.bit_cnt++;
-        //is this the last bit?
-        if (fsm.bit_cnt == 8) {
-             fsm.is_code_valid = 1;
-            //IRComplete(ir_code.code);
-            ResetDsm();
-        }
+        //büffer füll
+        edge_cnt=0;
     }
 }
- 
-void DecodeSpace(unsigned int bit_time) {
-    if (fsm.initiating_edge == 0) { //check for the first edge
-        fsm.initiating_edge = 1;
-    } else {
-        //only with simulator 
-        //printf("bit: %d  val:  %x\n", fsm.bit_cnt, bit_time);
-        cnt[fsm.bit_cnt] = bit_time;
-        fsm.bit_cnt++;
-        //is this the last bit?
-        if (fsm.bit_cnt == 41) {
-            fsm.is_code_valid = 1;
-            ResetDsm();
-        }
-    }
-}
- */

@@ -15,6 +15,7 @@ extern "C" {
 void StartReceiver();
 void IRRcvISR(void);
 void SendSW1();
+void RecvRaw(unsigned int bit_time);
 
 #ifdef	__cplusplus
 }

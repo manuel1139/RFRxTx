@@ -7,6 +7,7 @@
       <itemPath>bitstream_decode.h</itemPath>
       <itemPath>system_config.h</itemPath>
       <itemPath>system.h</itemPath>
+      <itemPath>remote_keys.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"

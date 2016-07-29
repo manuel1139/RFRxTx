@@ -1,7 +1,9 @@
 #include <xc.h>
 #include <plib.h>
+
 #include <stdio.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "bitstream_decode.h"
 #include "rf_bit_stream.h"
@@ -19,15 +21,11 @@ void ResetFsm(struct fsm* fsm);
 
 enum fsm_state {
     idle,
-    header,
+    header_a,
+    header_b,
     first_edge,
     second_edge,
     done
-};
-
-struct ircode {
-    uint16_t hdr_time;
-    uint8_t dbyte[MAX_BYTES];
 };
 
 struct fsm {
@@ -42,10 +40,27 @@ void ResetFsm(struct fsm* fsm) {
     fsm->bit_cnt = 0;
     fsm->byte_cnt = 0;
 
-    fsm->code.hdr_time = 0;
+    fsm->code.hdr_time_a = 0;
+    fsm->code.hdr_time_b = 0;
+
     for (int i = 0; i < MAX_BYTES; i++) {
         fsm->code.dbyte[i] = 0;
     }
+}
+
+struct ircode g_code = 0; //gloabal, last received code
+
+
+bool compare_ircode(struct ircode *irc1, struct ircode *irc2) {
+    bool eq;
+    int i;
+
+    for (i = 0; i < MAX_BYTES; i++) {
+        if (irc1->dbyte + i != irc2->dbyte + i)
+            eq = false;
+    }
+    eq = true;
+    return true;
 }
 
 void StartReceiver() {
@@ -80,7 +95,15 @@ void Receive(unsigned int bit_time) {
     static uint16_t l_first_edge;
 
     switch (receiver_fsm.state) {
-        case idle: //first edge time not needed
+        case idle: //first edgetime not needed
+            receiver_fsm.state = header_a;
+            break;
+        case header_a:
+            receiver_fsm.code.hdr_time_a = bit_time;
+            receiver_fsm.state = header_b;
+            break;
+        case header_b:
+            receiver_fsm.code.hdr_time_b = bit_time;
             receiver_fsm.state = first_edge;
             break;
         case first_edge:
@@ -88,7 +111,7 @@ void Receive(unsigned int bit_time) {
             receiver_fsm.state = second_edge;
             break;
         case second_edge:
-            if (receiver_fsm.byte_cnt < MAX_BYTES) {
+            if (receiver_fsm.byte_cnt < 4) { //4 byte for actual remote
                 if (receiver_fsm.bit_cnt > 7) {
                     receiver_fsm.byte_cnt++;
                     receiver_fsm.bit_cnt = 0;
@@ -103,6 +126,7 @@ void Receive(unsigned int bit_time) {
                 receiver_fsm.state = first_edge;
             } else {
                 receiver_fsm.state = done;
+                g_code = receiver_fsm.code;
             }
             break;
         case done:
@@ -180,7 +204,7 @@ void SendSW1() {
 
     StartSender();
 
-    snd_code.hdr_time = 0x03F0;
+    snd_code.hdr_time_a = 0x03F0;
     snd_code.dbyte[0] = 0x0B;
     snd_code.dbyte[1] = 0x00;
     snd_code.dbyte[2] = 0x82;

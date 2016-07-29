@@ -78,6 +78,8 @@ void init_uart(void) {
     RCSTAbits.SPEN = 1; // enable serial port
 }
 */
+ extern struct ircode g_code;  //gloabal, last received code
+
 int main(void) {
 
 //    init_uart();
@@ -86,7 +88,9 @@ int main(void) {
     StartReceiver();
     //SendSW1();
     while (1) {
+        compare_ircode(&g_code,  &g_code);
+        }
     }
-}
+
 
 

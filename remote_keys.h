@@ -12,16 +12,16 @@
 extern "C" {
 #endif
 
-#define KEY_1 0x40BF    
-#define KEY_2 0xC03F                    #  Was: 2
-#define KEY_3 0x20DF                    #  Was: 3
-#define KEY_4 0xA05F                    #  Was: 4
-#define KEY_5 0x609F                    #  Was: 5
-#define KEY_6 0xE01F                    #  Was: 6
-#define KEY_7 0x10EF                    #  Was: 7
+#define KEY_1 0x40BF
+#define KEY_2 0xC03F
+#define KEY_3 0x20DF
+#define KEY_4 0xA05F
+#define KEY_5 0x609F
+#define KEY_6 0xE01F
+#define KEY_7 0x10EF
 #define KEY_8 0x906F
 #define KEY_9 0x50AF
-#define KEY_0 0x30CF                  
+#define KEY_0 0x30CF
 
 /* Pollin RF Remote Wall plugs*/
 /*

@@ -15,6 +15,8 @@
 #define ACTIVE_LOW 0
 #define MAX_BYTES 4
 
+void ResetFsm(struct fsm* fsm);
+
 enum fsm_state {
     idle,
     header,
@@ -23,32 +25,27 @@ enum fsm_state {
     done
 };
 
-struct {
-    enum fsm_state state;
-    int bit_cnt;
-} sender_fsm, receiver_fsm;
-
-struct ircode_t {
+struct ircode {
     uint16_t hdr_time;
     uint8_t dbyte[MAX_BYTES];
-} rcv_code, snd_code, last_code;
+};
 
+struct fsm {
+    enum fsm_state state;
+    struct ircode code;
+    uint8_t byte_cnt;
+    uint8_t bit_cnt;
+};
 
-void SndData();
-void XferData();
-void TestXX();
-void StopSender();
-void ResetReceiverFsm();
+void ResetFsm(struct fsm* fsm) {
+    fsm->state = idle;
+    fsm->bit_cnt = 0;
+    fsm->byte_cnt = 0;
 
-void ResetReceiverFsm() {
-    receiver_fsm.state = idle;
-    receiver_fsm.bit_cnt = 0;
-
-    rcv_code.hdr_time = 0;
-    rcv_code.dbyte[0] = 0;
-    rcv_code.dbyte[1] = 0;
-    rcv_code.dbyte[2] = 0;
-    rcv_code.dbyte[3] = 0;
+    fsm->code.hdr_time = 0;
+    for (int i = 0; i < MAX_BYTES; i++) {
+        fsm->code.dbyte[i] = 0;
+    }
 }
 
 void StartReceiver() {
@@ -77,7 +74,49 @@ void StopReceiver() {
     CloseCapture1();
 }
 
+static struct fsm receiver_fsm;
+
 void Receive(unsigned int bit_time) {
+    static uint16_t l_first_edge;
+
+    switch (receiver_fsm.state) {
+        case idle: //first edge time not needed
+            receiver_fsm.state = first_edge;
+            break;
+        case first_edge:
+            l_first_edge = bit_time;
+            receiver_fsm.state = second_edge;
+            break;
+        case second_edge:
+            if (receiver_fsm.byte_cnt < MAX_BYTES) {
+                if (receiver_fsm.bit_cnt > 7) {
+                    receiver_fsm.byte_cnt++;
+                    receiver_fsm.bit_cnt = 0;
+                }
+                if (l_first_edge > bit_time) {
+                    receiver_fsm.code.dbyte[receiver_fsm.byte_cnt] <<= 1;
+                    receiver_fsm.code.dbyte[receiver_fsm.byte_cnt] |= 1;
+                } else {
+                    receiver_fsm.code.dbyte[receiver_fsm.byte_cnt] <<= 1;
+                }
+                receiver_fsm.bit_cnt++;
+                receiver_fsm.state = first_edge;
+            } else {
+                receiver_fsm.state = done;
+            }
+            break;
+        case done:
+            ResetFsm(&receiver_fsm);
+
+            break;
+        default:
+            break;
+
+    }
+}
+
+/*
+void ReceiveRF(unsigned int bit_time) {
     char byte_nr;
     static uint16_t l_first_edge;
     static uint8_t bit_cnt = 0;
@@ -123,7 +162,7 @@ void Receive(unsigned int bit_time) {
 
     }
 }
-
+ */
 void StartSender() {
     OpenTimer3(T3_16BIT_RW &
             T3_PS_1_8 &
@@ -135,10 +174,10 @@ void StartSender() {
 void StopSender() {
     CloseTimer3();
 }
-struct ircode_t myPrtCode;
-
 
 void SendSW1() {
+    struct ircode snd_code;
+
     StartSender();
 
     snd_code.hdr_time = 0x03F0;
@@ -146,13 +185,14 @@ void SendSW1() {
     snd_code.dbyte[1] = 0x00;
     snd_code.dbyte[2] = 0x82;
 
-    sender_fsm.state = header;
+    //    sender_fsm.state = header;
     //SndData();   
     //force start
     WriteTimer3(0xFFFF);
 }
 
-void SndData() {
+/*
+ * void SndData() {
     uint8_t byte_nr, bit_idx;
     static int8_t tmp;
     static uint8_t bit_cnt = 19;
@@ -220,6 +260,7 @@ void SndData() {
     }
 }
 
+ * */
 void high_priority interrupt high_isr(void) {
     if (PIR1bits.CCP1IF) {
         PIR1bits.CCP1IF = 0;
@@ -232,13 +273,13 @@ void high_priority interrupt high_isr(void) {
 
     if (PIR1bits.TMR1IF) {
         PIR1bits.TMR1IF = 0;
-        ResetReceiverFsm();
+        ResetFsm(&receiver_fsm);
 
     }
 
     if (PIR2bits.TMR3IF) {
         PIR2bits.TMR3IF = 0;
-        SndData();
+        //        SndData();
     }
 }
 
@@ -254,6 +295,6 @@ void RecvRaw(unsigned int bit_time) {
         edge_cnt++;
     } else {
         //büffer füll
-        edge_cnt=0;
+        edge_cnt = 0;
     }
 }

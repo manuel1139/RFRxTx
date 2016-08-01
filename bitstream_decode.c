@@ -43,56 +43,38 @@ enum fsm_state {
     done
 };
 
-struct ir_code {
+typedef struct  {
+    struct ir_remote* ir_rc;
     uint16_t pre_code;
     uint16_t code;
-};
+} ir_code;
 
 struct fsm {
     enum fsm_state state;
-    struct ir_code code;
-    uint8_t byte_cnt;
+    ir_code code;
+    uint8_t word_cnt;
     uint8_t bit_cnt;
 };
 
-void reset_code(struct ir_code *irc) {
-    irc->valid = 0;
-    for (int i = 0; i < MAX_BYTES; i++) {
-        irc->dbyte[i] = 0;
-    }
+void reset_code(ir_code *irc) {
+    irc->ir_rc = 0;
+    irc->pre_code = 0;
+    irc->code = 0;
 }
 
 void reset_fsm(struct fsm* fsm) {
     fsm->state = idle;
     fsm->bit_cnt = 0;
-    fsm->byte_cnt = 0;
+    fsm->word_cnt = 0;
     reset_code(&fsm->code);
 }
 
-void check_buttons() {
-    if (g_code.valid) {
-        compare_ircodes();
-    }
-
+bool compare_ircode(ir_code *irc1, ir_code *irc2) {
+    return ( irc1->pre_code == irc2->pre_code ) &&
+           ( irc1->code == irc2->code );
 }
 
-void compare_ircodes() {
-    compare_ircode(&g_code, &remote_codes[0]);
-}
-
-bool compare_ircode(struct ircode *irc1, struct ircode *irc2) {
-    bool eq;
-    int i;
-
-    for (i = 0; i < MAX_BYTES; i++) {
-        if (irc1->dbyte + i != irc2->dbyte + i)
-            eq = false;
-    }
-    eq = true;
-    return true;
-}
-
-void StartReceiver() {
+void rx_start() {
 
     CCPR1 = 0; //Timer data register zero (word)
     IPR1bits.CCP1IP = 1; //Timer 1 as source
@@ -114,53 +96,55 @@ void StartReceiver() {
     // of StartReceiver
 }
 
-void StopReceiver() {
+void rx_stop() {
     CloseCapture1();
 }
 
-static struct fsm receiver_fsm;
-
-void Receive(unsigned int bit_time) {
+void ir_rx(uint16_t bit_time) {
+    static struct fsm ir_rx_fsm;
     static uint16_t l_first_edge;
+    static struct ir_remote ir_rc;
+    static ir_code ir_c;
 
-    switch (receiver_fsm.state) {
+    ir_c.ir_rc = ir_rc;
+    
+    switch (ir_rx_fsm.state) {
         case idle: //first edgetime not needed
-            receiver_fsm.state = header_a;
+            ir_rx_fsm.state = header_a;
             break;
         case header_a:
-            receiver_fsm.code.hdr_time_a = bit_time;
-            receiver_fsm.state = header_b;
+            ir_rc->hdr_time_a = bit_time;
+            ir_rx_fsm.state = header_b;
             break;
         case header_b:
-            receiver_fsm.code.hdr_time_b = bit_time;
-            receiver_fsm.state = first_edge;
+            ir_rc.hdr_time_b = bit_time;
+            ir_rx_fsm.state = first_edge;
             break;
         case first_edge:
             l_first_edge = bit_time;
-            receiver_fsm.state = second_edge;
+            ir_rx_fsm.state = second_edge;
             break;
         case second_edge:
-            if (receiver_fsm.byte_cnt < 4) { //4 byte for actual remote
-                if (receiver_fsm.bit_cnt > 7) {
-                    receiver_fsm.byte_cnt++;
-                    receiver_fsm.bit_cnt = 0;
+            if (ir_rx_fsm.word_cnt < 2) {
+                if (ir_rx_fsm.bit_cnt > 15) {
+                    ir_rx_fsm.word_cnt++;
+                    ir_rx_fsm.bit_cnt = 0;
                 }
                 if (l_first_edge > bit_time) {
-                    receiver_fsm.code.dbyte[receiver_fsm.byte_cnt] <<= 1;
-                    receiver_fsm.code.dbyte[receiver_fsm.byte_cnt] |= 1;
+                    ir_rx_fsm.code <<= 1;
+                    ir_rx_fsm.code[ir_rx_fsm.word_cnt] |= 1;
                 } else {
-                    receiver_fsm.code.dbyte[receiver_fsm.byte_cnt] <<= 1;
+                    ir_rx_fsm.code[ir_rx_fsm.word_cnt] <<= 1;
                 }
-                receiver_fsm.bit_cnt++;
-                receiver_fsm.state = first_edge;
+                ir_rx_fsm.bit_cnt++;
+                ir_rx_fsm.state = first_edge;
             } else {
-                receiver_fsm.state = done;
-                g_code = receiver_fsm.code;
+                ir_rx_fsm.state = done;
+                                //send_code
             }
             break;
         case done:
-            reset_fsm(&receiver_fsm);
-
+            reset_fsm(&ir_rx_fsm);
             break;
         default:
             break;
@@ -320,13 +304,13 @@ void high_priority interrupt high_isr(void) {
         WriteTimer1(0);
         // get the hi->lo lo->hi transition
         CCP1CONbits.CCP1M0 = ~CCP1CONbits.CCP1M0; //invert  edge detection
-        Receive(ReadCapture1());
+        ir_rx(ReadCapture1());
         //RecvRaw(ReadCapture1());
     }
 
     if (PIR1bits.TMR1IF) {
         PIR1bits.TMR1IF = 0;
-        reset_fsm(&receiver_fsm);
+        reset_fsm(&ir_rx_fsm);
 
     }
 

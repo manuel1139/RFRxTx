@@ -77,20 +77,21 @@ void init_uart(void) {
     TXSTAbits.TXEN = 1; // enable transmitter
     RCSTAbits.SPEN = 1; // enable serial port
 }
-*/
- extern struct ircode g_code;  //gloabal, last received code
+ */
+extern struct ircode g_code; //gloabal, last received code
 
 int main(void) {
 
-//    init_uart();
+    //    init_uart();
     printf("starting\n");
     SYSTEM_Initialize();
     StartReceiver();
     //SendSW1();
     while (1) {
-        compare_ircode(&g_code,  &g_code);
-        }
+        check_buttons();
+
     }
+}
 
 
 

@@ -8,6 +8,7 @@
 #include "bitstream_decode.h"
 #include "rf_bit_stream.h"
 #include "system_config.h"
+#include "remote_keys.h"
 
 #define LOW_1 0x43F
 #define HIGH_1 0x7B2
@@ -15,9 +16,23 @@
 #define HIGH_0 0x829
 
 #define ACTIVE_LOW 0
-#define MAX_BYTES 4
 
-void ResetFsm(struct fsm* fsm);
+
+void reset_fsm(struct fsm* fsm);
+void check_buttons();
+void compare_ircodes();
+bool compare_ircode(struct ircode *irc1, struct ircode *irc2);
+
+struct ir_remote {
+    const char* name;
+    uint16_t hdr_time_a;
+    uint16_t hdr_time_b;
+    uint16_t pre_code;
+    uint16_t ir_codes[];
+};
+
+struct ir_remote myRemote = { "Terratec", 0x33F0, 0x0432, 0x234,
+                                {KEY_1, KEY_2, KEY_3} };
 
 enum fsm_state {
     idle,
@@ -28,28 +43,42 @@ enum fsm_state {
     done
 };
 
+struct ir_code {
+    uint16_t pre_code;
+    uint16_t code;
+};
+
 struct fsm {
     enum fsm_state state;
-    struct ircode code;
+    struct ir_code code;
     uint8_t byte_cnt;
     uint8_t bit_cnt;
 };
 
-void ResetFsm(struct fsm* fsm) {
-    fsm->state = idle;
-    fsm->bit_cnt = 0;
-    fsm->byte_cnt = 0;
-
-    fsm->code.hdr_time_a = 0;
-    fsm->code.hdr_time_b = 0;
-
+void reset_code(struct ir_code *irc) {
+    irc->valid = 0;
     for (int i = 0; i < MAX_BYTES; i++) {
-        fsm->code.dbyte[i] = 0;
+        irc->dbyte[i] = 0;
     }
 }
 
-struct ircode g_code = 0; //gloabal, last received code
+void reset_fsm(struct fsm* fsm) {
+    fsm->state = idle;
+    fsm->bit_cnt = 0;
+    fsm->byte_cnt = 0;
+    reset_code(&fsm->code);
+}
 
+void check_buttons() {
+    if (g_code.valid) {
+        compare_ircodes();
+    }
+
+}
+
+void compare_ircodes() {
+    compare_ircode(&g_code, &remote_codes[0]);
+}
 
 bool compare_ircode(struct ircode *irc1, struct ircode *irc2) {
     bool eq;
@@ -130,7 +159,7 @@ void Receive(unsigned int bit_time) {
             }
             break;
         case done:
-            ResetFsm(&receiver_fsm);
+            reset_fsm(&receiver_fsm);
 
             break;
         default:
@@ -297,7 +326,7 @@ void high_priority interrupt high_isr(void) {
 
     if (PIR1bits.TMR1IF) {
         PIR1bits.TMR1IF = 0;
-        ResetFsm(&receiver_fsm);
+        reset_fsm(&receiver_fsm);
 
     }
 
@@ -307,7 +336,7 @@ void high_priority interrupt high_isr(void) {
     }
 }
 
-
+/*
 uint16_t edge_time[150];
 
 void RecvRaw(unsigned int bit_time) {
@@ -322,3 +351,4 @@ void RecvRaw(unsigned int bit_time) {
         edge_cnt = 0;
     }
 }
+ */

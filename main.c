@@ -88,8 +88,7 @@ int main(void) {
     rx_start();
     //SendSW1();
     while (1) {
-//        check_buttons();
-
+        //check_buttons();
     }
 }
 

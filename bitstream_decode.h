@@ -15,7 +15,7 @@
 extern "C" {
 #endif
 
-void StartReceiver();
+void rx_start();
 void check_buttons();       
     
 #ifdef	__cplusplus

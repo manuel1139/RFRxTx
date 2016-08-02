@@ -17,7 +17,18 @@
 
 #define ACTIVE_LOW 0
 
-const uint16_t ir_codes[] = {
+const struct code2func {
+    uint16_t key;
+    void (*txfunc)();
+} ;
+
+void ir_tx() {
+    ::StartSender();
+}
+const struct code2func cf[] = { KEY_1, &ir_tx,
+                                KEY_2, &ir_tx };
+
+const uint16_t ir_codesx[] = {
     KEY_1,  
     KEY_2,
     KEY_3,
@@ -36,12 +47,12 @@ typedef struct {
     uint16_t hdr_time_b;
     uint16_t pre_code;
     uint16_t code;
-    const uint16_t *ir_codes;
+    const struct code2func *c2f;
 }  ir_remote;
 
 
 
-const ir_remote myRemote = { "Terratec", 0x1234, 0x1234, 0x1234, 0, ir_codes };
+const ir_remote myRemote = { "Terratec", 0x3575, 0x199C, 0x28D7, 0, &cf };
 
 enum fsm_state {
     idle,
@@ -105,8 +116,8 @@ void rx_start() {
             TIMER_INT_ON &
             T1_PS_1_8);
 
-    WriteTimer1(0xFFFF); //to reset FSM in oder to not create duplicate versions
-    // of StartReceiver
+    WriteTimer1(0xFFFF); //reset FSM like this to avoid duplicate versions
+                         // of StartReceiver
 }
 
 void rx_stop() {
@@ -154,17 +165,22 @@ void ir_rx(uint16_t bit_time) {
                 //try to find code in rc
                 if (ir_rc.pre_code == myRemote.pre_code) {
                     for (int i=0; i<10; i++) {
-                        if (ir_rc.code == *(myRemote.ir_codes+i)) {
-                            //myRemote.execute();
-                            int x;
-                        x++;
-                        }
+                        const struct code2func *c2f = myRemote.c2f;
+                        uint16_t code = (c2f->key;
+                        
+                        code += 1;
+                        
+                        
+                        
+                    //   if (ir_rc.code == (myRemote.cf->key)+i) ){
+
+                        //}
                     }
                 }
                 ir_rx_fsm.state = done;
                 
             }
-            //break;
+            break;
             
         case done:
             reset_fsm(&ir_rx_fsm);

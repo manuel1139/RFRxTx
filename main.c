@@ -85,10 +85,10 @@ int main(void) {
     //    init_uart();
     printf("starting\n");
     SYSTEM_Initialize();
-    StartReceiver();
+    rx_start();
     //SendSW1();
     while (1) {
-        check_buttons();
+//        check_buttons();
 
     }
 }

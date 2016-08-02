@@ -17,22 +17,31 @@
 
 #define ACTIVE_LOW 0
 
+const uint16_t ir_codes[] = {
+    KEY_1,  
+    KEY_2,
+    KEY_3,
+    KEY_4,
+    KEY_5,
+    KEY_6,
+    KEY_7,
+    KEY_8,
+    KEY_9,
+    KEY_0
+};
 
-void reset_fsm(struct fsm* fsm);
-void check_buttons();
-void compare_ircodes();
-bool compare_ircode(struct ircode *irc1, struct ircode *irc2);
-
-struct ir_remote {
+typedef struct {
     const char* name;
     uint16_t hdr_time_a;
     uint16_t hdr_time_b;
     uint16_t pre_code;
-    uint16_t ir_codes[];
-};
+    uint16_t code;
+    const uint16_t *ir_codes;
+}  ir_remote;
 
-struct ir_remote myRemote = { "Terratec", 0x33F0, 0x0432, 0x234,
-                                {KEY_1, KEY_2, KEY_3} };
+
+
+const ir_remote myRemote = { "Terratec", 0x1234, 0x1234, 0x1234, 0, ir_codes };
 
 enum fsm_state {
     idle,
@@ -52,9 +61,14 @@ typedef struct  {
 struct fsm {
     enum fsm_state state;
     ir_code code;
-    uint8_t word_cnt;
     uint8_t bit_cnt;
-};
+} ir_rx_fsm;
+
+
+void reset_fsm(struct fsm* fsm);
+void check_buttons();
+bool compare_ircode(ir_code *irc1, ir_code *irc2);
+
 
 void reset_code(ir_code *irc) {
     irc->ir_rc = 0;
@@ -65,7 +79,6 @@ void reset_code(ir_code *irc) {
 void reset_fsm(struct fsm* fsm) {
     fsm->state = idle;
     fsm->bit_cnt = 0;
-    fsm->word_cnt = 0;
     reset_code(&fsm->code);
 }
 
@@ -101,19 +114,16 @@ void rx_stop() {
 }
 
 void ir_rx(uint16_t bit_time) {
-    static struct fsm ir_rx_fsm;
     static uint16_t l_first_edge;
-    static struct ir_remote ir_rc;
-    static ir_code ir_c;
-
-    ir_c.ir_rc = ir_rc;
+    static ir_remote ir_rc;
+    uint16_t *dp;
     
     switch (ir_rx_fsm.state) {
         case idle: //first edgetime not needed
             ir_rx_fsm.state = header_a;
             break;
         case header_a:
-            ir_rc->hdr_time_a = bit_time;
+            ir_rc.hdr_time_a = bit_time;
             ir_rx_fsm.state = header_b;
             break;
         case header_b:
@@ -125,24 +135,37 @@ void ir_rx(uint16_t bit_time) {
             ir_rx_fsm.state = second_edge;
             break;
         case second_edge:
-            if (ir_rx_fsm.word_cnt < 2) {
-                if (ir_rx_fsm.bit_cnt > 15) {
-                    ir_rx_fsm.word_cnt++;
-                    ir_rx_fsm.bit_cnt = 0;
-                }
-                if (l_first_edge > bit_time) {
-                    ir_rx_fsm.code <<= 1;
-                    ir_rx_fsm.code[ir_rx_fsm.word_cnt] |= 1;
-                } else {
-                    ir_rx_fsm.code[ir_rx_fsm.word_cnt] <<= 1;
-                }
+            if (ir_rx_fsm.bit_cnt < 15) {
+                dp = &(ir_rc.pre_code);                        
+            } else if (ir_rx_fsm.bit_cnt > 15 &&
+                   ir_rx_fsm.bit_cnt < 31) {
+                dp = &(ir_rc.code);
+            }
+            
+            *dp <<= 1;
+            if (l_first_edge > bit_time) {
+              *dp |= 1;
+            } 
+            
+            if (ir_rx_fsm.bit_cnt < 31) {
                 ir_rx_fsm.bit_cnt++;
                 ir_rx_fsm.state = first_edge;
-            } else {
+            } else {                
+                //try to find code in rc
+                if (ir_rc.pre_code == myRemote.pre_code) {
+                    for (int i=0; i<10; i++) {
+                        if (ir_rc.code == *(myRemote.ir_codes+i)) {
+                            //myRemote.execute();
+                            int x;
+                        x++;
+                        }
+                    }
+                }
                 ir_rx_fsm.state = done;
-                                //send_code
+                
             }
-            break;
+            //break;
+            
         case done:
             reset_fsm(&ir_rx_fsm);
             break;
@@ -211,7 +234,7 @@ void StartSender() {
 void StopSender() {
     CloseTimer3();
 }
-
+/*
 void SendSW1() {
     struct ircode snd_code;
 
@@ -227,7 +250,7 @@ void SendSW1() {
     //force start
     WriteTimer3(0xFFFF);
 }
-
+*/
 /*
  * void SndData() {
     uint8_t byte_nr, bit_idx;

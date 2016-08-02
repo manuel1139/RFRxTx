@@ -23,7 +23,7 @@ extern "C" {
 #define KEY_9 0x50AF
 #define KEY_0 0x30CF
 
-/* Pollin RF Remote Wall plugs*/
+/* Pollin RF Remote wall plugs*/
 /*
 S1 ON 0x11  off 0x00
 S2 ON 0x93  off 0x82

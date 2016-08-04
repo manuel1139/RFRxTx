@@ -12,6 +12,7 @@
 extern "C" {
 #endif
 
+//Technotrend     
 #define KEY_1 0x40BF
 #define KEY_2 0xC03F
 #define KEY_3 0x20DF
@@ -23,15 +24,20 @@ extern "C" {
 #define KEY_9 0x50AF
 #define KEY_0 0x30CF
 
-/* Pollin RF Remote wall plugs*/
-/*
-S1 ON 0x11  off 0x00
-S2 ON 0x93  off 0x82
-S3 ON 0x50  0ff 0x41
-S4 ON 0xD2  OFF 0xC3
-ALLON 0xF0  OFF 0xE1
-DRK   0x1B  BRI 0x0A
-*/
+//Pollin RF Remote wall plugs
+#define S1_ON  0x0011
+#define S1_OFF 0x0000    
+#define S2_ON  0x0093
+#define S2_OFF 0x0082    
+#define S3_ON  0x0050
+#define S3_OFF 0x0041    
+#define S4_ON  0x00D2
+#define S4_OFF 0x00C3    
+#define ALL_ON 0x00F0
+#define ALL_OFF 0x00E1
+#define DARK   0x001B
+#define LIGHT  0x000A
+    
 
 #ifdef	__cplusplus
 }

@@ -15,9 +15,11 @@
 extern "C" {
 #endif
 
-void rx_start();
-void check_buttons();       
-    
+void ir_rx_start();
+void rf_tx_start();
+
+void test_send();
+
 #ifdef	__cplusplus
 }
 #endif

@@ -26,7 +26,6 @@ int main(void) {
     SYSTEM_Initialize();
     ir_rx_start();
     rf_tx_start();
-    test_send();
     while (1) {
         
     }

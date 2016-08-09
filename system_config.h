@@ -9,7 +9,7 @@
 #define	SYSTEM_CONFIG_H
 
 
-#pragma config PLLDIV = 4       // PLL Prescaler Selection bits (Divide by 4 (16 MHz oscillator input))
+#pragma config PLLDIV = 6       // PLL Prescaler Selection bits (Divide by 4 (16 MHz oscillator input))
 #pragma config CPUDIV = OSC1_PLL2// System Clock Postscaler Selection bits ([Primary Oscillator Src: /1][96 MHz PLL Src: /2])
 #pragma config USBDIV = 2       // USB Clock Selection bit (used in Full-Speed USB mode only; UCFG:FSEN = 1) (USB clock source comes from the 96 MHz PLL divided by 2)
 

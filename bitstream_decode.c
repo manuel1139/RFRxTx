@@ -8,74 +8,12 @@
 #include "bitstream_decode.h"
 #include "remote_keys.h"
 #include "system.h"
+#include "usb.h"
 
 #define NELEMS(x)  (sizeof(x) / sizeof((x)[0]))
 
-void ir_tx();
 void rx_raw(uint16_t);
 uint16_t swap(uint16_t val);
-
-const struct code2func {
-    uint16_t key;
-    void (*txfunc)();
-};
-
-typedef struct {
-    const char* name;
-    uint16_t hdr_time_a;
-    uint16_t hdr_time_b;
-    uint16_t low_1;
-    uint16_t high_1;
-    uint16_t low_0;
-    uint16_t high_0;
-    uint16_t pre_code;
-    uint8_t bit_cnt;
-    const struct code2func *c2f;
-} remote;
-
-
-const struct code2func terratec_ir_rc_codes[] = {
-    KEY_1, &ir_tx,
-    KEY_2, &ir_tx
-};
-
-const remote terratec_ir_rc = {
-    "Terratec",
-    0x3575, //header_a
-    0x199C, //header_b
-    0, //low_1
-    0, //high_1
-    0,
-    0,
-    0x28D7, //pre_code
-    32,
-    &terratec_ir_rc_codes
-}; //codes
-
-const struct code2func pollin_rf_rc_codes[] = {
-    S1_ON, 0,
-    S1_OFF, 0,
-    S2_ON, 0,
-    S2_OFF, 0
-};
-
-const remote pollin_rf_rc = {
-    "Pollin",
-    0x0, //header_a
-    0x03F0, //header_b
-    0x43F, //low_1
-    0x7B2, //high_1
-    0x3C8, //low_0
-    0x829, //high_0
-    0x0B, //pre_code
-    20, //bit count
-    &pollin_rf_rc_codes //codes
-};
-
-typedef struct {
-    const remote *rc;
-    uint16_t code;
-} xcode;
 
 enum fsm_state {
     idle,
@@ -92,12 +30,14 @@ typedef struct {
     //    uint8_t bit_cnt;
 } fsm;
 
+
+
 fsm ir_rx_fsm;
 fsm rf_tx_fsm;
 
 
 void reset_fsm(fsm* fsm);
-void rf_tx(xcode* rf_code);
+void rf_tx(xcode*);
 void ir_tx();
 
 void reset_fsm(fsm* fsm) {
@@ -184,7 +124,7 @@ void ir_rx(uint16_t bit_time) {
                         const struct code2func *c2f = terratec_ir_rc.c2f;
                         uint16_t code = (c2f + i)->key;
                         if (current_code.code == code) {
-                              //send a command
+                            //send a command
                             c2f->txfunc();
                         }
                     }
@@ -199,18 +139,20 @@ void ir_rx(uint16_t bit_time) {
 
     }
 }
-xcode rf_code;
+xcode code_to_send;
 
-void ir_tx() {
-    rf_code.rc = &pollin_rf_rc;
-    rf_code.code = S2_ON;
+//todo: shoudl be fro hid .. send_code(remote, code)
+
+void send_code(const remote r, uint16_t c) {
+
+    code_to_send.code = c;
+    code_to_send.rc = &pollin_rf_rc;
 
     rf_tx_fsm.state = header_a;
-    WriteTimer3(0xFFFF);
+    rf_tx(&code_to_send);
 }
 
 void rf_tx(xcode* rf_code) {
-    uint8_t byte_nr, bit_idx;
     static int8_t tmp;
     static uint8_t bit_cnt = 19;
 
@@ -220,14 +162,14 @@ void rf_tx(xcode* rf_code) {
         case header_a:
             if (pollin_rf_rc.hdr_time_a != 0) {
                 RF_OUT = ~RF_OUT;
-                WriteTimer3(0xFFFF - pollin_rf_rc.hdr_time_a);
                 rf_tx_fsm.state = header_b;
+                WriteTimer3(0xFFFF - pollin_rf_rc.hdr_time_a);
                 break;
             }
         case header_b:
             RF_OUT = ~RF_OUT;
-            WriteTimer3(0xFFFF - pollin_rf_rc.hdr_time_b);
             rf_tx_fsm.state = first_edge;
+            WriteTimer3(0xFFFF - pollin_rf_rc.hdr_time_b);
             break;
         case first_edge:
             RF_OUT = ~RF_OUT;
@@ -236,12 +178,11 @@ void rf_tx(xcode* rf_code) {
             } else {
                 tmp = rf_code->code & (1 << bit_cnt);
             }
-
+            rf_tx_fsm.state = second_edge;
             if (tmp) WriteTimer3(0xFFFF - pollin_rf_rc.high_1);
             else {
                 WriteTimer3(0xFFFF - pollin_rf_rc.low_0);
             }
-            rf_tx_fsm.state = second_edge;
             break;
         case second_edge:
             RF_OUT = ~RF_OUT;
@@ -257,22 +198,11 @@ void rf_tx(xcode* rf_code) {
             }
             break;
         case done:
-            //StopSender();
-            RF_OUT = ~RF_OUT;
+            RF_OUT = 0; //last edge must be  zero
             bit_cnt = 19;
-            //           rf_tx_fsm.state = header;
-            //         snd_code.dbyte[2] == 0x82 ? snd_code.dbyte[2] = 0x93 : snd_code.dbyte[2] = 0x82;
-            for (uint32_t i = 0; i < 320000; i++) {
-                NOP();
-                NOP();
-                NOP();
-                NOP();
-                NOP();
-                NOP();
-                NOP();
-                NOP();
-                NOP();
-            }
+            rf_tx_fsm.state = idle;
+            code_to_send.code = 0;
+            code_to_send.rc = NULL;
             break;
         default:
             break;
@@ -356,7 +286,7 @@ void SendSW1() {
 }
  */
 
-/*
+
 void rx_raw(uint16_t bit_time) {
 #define MAX_EDGE 35
     static uint16_t edge_times[MAX_EDGE];
@@ -370,14 +300,16 @@ void rx_raw(uint16_t bit_time) {
         edge_cnt = 0;
     }
 }
- */
 
 void high_priority interrupt high_isr(void) {
+
+    USBDeviceTasks();
+
     if (PIR1bits.CCP1IF) {
         //invert edge detection 
         CCP1CONbits.CCP1M0 = ~CCP1CONbits.CCP1M0;
-        ir_rx(ReadCapture1());
-        //        rx_raw(ReadCapture1());
+        //ir_rx(ReadCapture1());
+        rx_raw(ReadCapture1());
         WriteTimer1(0);
         PIR1bits.CCP1IF = 0;
     }
@@ -386,7 +318,7 @@ void high_priority interrupt high_isr(void) {
         PIR1bits.TMR1IF = 0;
     }
     if (PIR2bits.TMR3IF) {
+        rf_tx(&code_to_send);
         PIR2bits.TMR3IF = 0;
-        rf_tx(&rf_code);
     }
 }

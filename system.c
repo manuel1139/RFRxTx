@@ -1,19 +1,16 @@
 #include <xc.h>
-
 #include "system.h"
-
+#include "system_config.h"
 #include "bitstream_decode.h"
+#include "usb.h"
+#include "usb_config.h"
 
 void SYSTEM_Initialize(void)
 {
+ 
+    //todo: check 38khz/40khz PWM for IR-OUT 
     
-//    IR_RCV_TRIS = INPUT_PIN;
-//    IR_SEND_TRIS = OUTPUT_PIN;
-    
-    //todo: check if we need 38khz/40khz PWM for IR-OUT 
-    
-    ADCON1 = 0x0f;
-    TRISA = 0x00;
+    ADCON1 = 0x0f;  //All PORTABits DIGITAL
  
     /*******************************************************************/
     // Enable System Interupts
@@ -21,11 +18,14 @@ void SYSTEM_Initialize(void)
     INTCONbits.GIEH = 1;
     INTCONbits.GIEL = 1;
 
-    RF_OUT_TRIS = OUTPUT_PIN; //define as output 
-
     SW1_TRIS = INPUT_PIN;
     SW2_TRIS = INPUT_PIN;
     SW3_TRIS = INPUT_PIN;
     
+    RF_OUT_TRIS = OUTPUT_PIN;
+
+    LED1_TRIS = OUTPUT_PIN;
+    LED2_TRIS = OUTPUT_PIN;
   
 }
+

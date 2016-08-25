@@ -85,6 +85,8 @@ void ir_rx_start();
 void rf_tx_start();
 
 void send_code(const remote, uint16_t);
+xcode get_code();
+xcode get_last_code();
 
 #ifdef	__cplusplus
 }

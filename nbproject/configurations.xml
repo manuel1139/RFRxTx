@@ -20,8 +20,15 @@
           <itemPath>../../../../../../microchip/mla/v2015_05_15/framework/usb/inc/usb_hal_pic24f.h</itemPath>
         </logicalFolder>
       </logicalFolder>
+      <logicalFolder name="f3" displayName="system_config" projectFiles="true">
+        <logicalFolder name="f1" displayName="18f2450" projectFiles="true">
+          <itemPath>system_config/18f2450/system_config.h</itemPath>
+        </logicalFolder>
+        <logicalFolder name="f2" displayName="18f2550" projectFiles="true">
+          <itemPath>system_config/18f2550/system_config.h</itemPath>
+        </logicalFolder>
+      </logicalFolder>
       <itemPath>bitstream_decode.h</itemPath>
-      <itemPath>system_config.h</itemPath>
       <itemPath>system.h</itemPath>
       <itemPath>remote_keys.h</itemPath>
       <itemPath>app_device_custom_hid.h</itemPath>
@@ -97,7 +104,7 @@
         <property key="asmlist" value="true"/>
         <property key="define-macros" value=""/>
         <property key="extra-include-directories"
-                  value="..\..\..\..\..\..\microchip\mla\v2015_05_15\framework\usb\inc;./"/>
+                  value="..\..\..\..\..\..\microchip\mla\v2015_05_15\framework\usb\inc;./;system_config\18f2450"/>
         <property key="identifier-length" value="255"/>
         <property key="operation-mode" value="free"/>
         <property key="opt-xc8-compiler-strict_ansi" value="false"/>
@@ -632,6 +639,14 @@
         <property key="stack-size-main" value="auto"/>
         <property key="stack-type" value="compiled"/>
       </XC8-config-global>
+      <item path="system_config/18f2450/system_config.h" ex="true" overriding="false">
+        <HI-TECH-COMP>
+        </HI-TECH-COMP>
+        <HI-TECH-LINK>
+        </HI-TECH-LINK>
+        <XC8-config-global>
+        </XC8-config-global>
+      </item>
     </conf>
     <conf name="18f2450" type="2">
       <toolsSet>
@@ -669,13 +684,14 @@
       <HI-TECH-COMP>
         <property key="asmlist" value="true"/>
         <property key="define-macros" value=""/>
-        <property key="extra-include-directories" value=""/>
+        <property key="extra-include-directories"
+                  value="..\..\..\..\..\..\microchip\mla\v2015_05_15\framework\usb\inc;./;system_config\18f2450"/>
         <property key="identifier-length" value="255"/>
         <property key="operation-mode" value="free"/>
         <property key="opt-xc8-compiler-strict_ansi" value="false"/>
-        <property key="optimization-assembler" value="true"/>
-        <property key="optimization-assembler-files" value="true"/>
-        <property key="optimization-debug" value="false"/>
+        <property key="optimization-assembler" value="false"/>
+        <property key="optimization-assembler-files" value="false"/>
+        <property key="optimization-debug" value="true"/>
         <property key="optimization-global" value="true"/>
         <property key="optimization-invariant-enable" value="false"/>
         <property key="optimization-invariant-value" value="16"/>
@@ -688,8 +704,9 @@
         <property key="use-cci" value="false"/>
         <property key="use-iar" value="false"/>
         <property key="verbose" value="false"/>
-        <property key="warning-level" value="-3"/>
+        <property key="warning-level" value="0"/>
         <property key="what-to-do" value="ignore"/>
+        <appendMe value="-O0"/>
       </HI-TECH-COMP>
       <HI-TECH-LINK>
         <property key="additional-options-checksum" value=""/>
@@ -700,8 +717,8 @@
         <property key="additional-options-trace-type" value=""/>
         <property key="additional-options-use-response-files" value="false"/>
         <property key="backup-reset-condition-flags" value="false"/>
-        <property key="calibrate-oscillator" value="false"/>
-        <property key="calibrate-oscillator-value" value="0x3400"/>
+        <property key="calibrate-oscillator" value="true"/>
+        <property key="calibrate-oscillator-value" value=""/>
         <property key="clear-bss" value="true"/>
         <property key="code-model-external" value="wordwrite"/>
         <property key="code-model-rom" value=""/>
@@ -724,7 +741,7 @@
         <property key="initialize-data" value="true"/>
         <property key="keep-generated-startup.as" value="false"/>
         <property key="link-in-c-library" value="true"/>
-        <property key="link-in-peripheral-library" value="false"/>
+        <property key="link-in-peripheral-library" value="true"/>
         <property key="managed-stack" value="false"/>
         <property key="opt-xc8-linker-file" value="false"/>
         <property key="opt-xc8-linker-link_startup" value="false"/>
@@ -754,7 +771,7 @@
         <property key="memories.instruction.ram.start"
                   value="${memories.instruction.ram.start.value}"/>
         <property key="memories.programmemory" value="true"/>
-        <property key="memories.programmemory.end" value="0x3fff"/>
+        <property key="memories.programmemory.end" value="0x7fff"/>
         <property key="memories.programmemory.partition2" value="true"/>
         <property key="memories.programmemory.partition2.end"
                   value="${memories.programmemory.partition2.end.value}"/>
@@ -767,7 +784,7 @@
         <property key="programoptions.preservedataflash" value="false"/>
         <property key="programoptions.preserveeeprom" value="false"/>
         <property key="programoptions.preserveprogramrange" value="false"/>
-        <property key="programoptions.preserveprogramrange.end" value="0x3fff"/>
+        <property key="programoptions.preserveprogramrange.end" value="0x7fff"/>
         <property key="programoptions.preserveprogramrange.start" value="0x0"/>
         <property key="programoptions.preserveuserid" value="false"/>
         <property key="programoptions.programcalmem" value="false"/>
@@ -782,8 +799,8 @@
         <property key="Freeze Peripherals" value="true"/>
         <property key="SecureSegment.SegmentProgramming" value="FullChipProgramming"/>
         <property key="ToolFirmwareFilePath"
-                  value="Press to browse for a specific firmware version"/>
-        <property key="ToolFirmwareOption.UseLatestFirmware" value="true"/>
+                  value="C:\Program Files (x86)/Microchip/MPLABX/v3.35/mplab_ide/mplablibs/modules/ext/PICKIT3.jar/PK3FW_014335.jam"/>
+        <property key="ToolFirmwareOption.UseLatestFirmware" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="true"/>
@@ -799,7 +816,7 @@
         <property key="memories.instruction.ram.start"
                   value="${memories.instruction.ram.start.value}"/>
         <property key="memories.programmemory" value="true"/>
-        <property key="memories.programmemory.end" value="0x3fff"/>
+        <property key="memories.programmemory.end" value="0x7fff"/>
         <property key="memories.programmemory.partition2" value="true"/>
         <property key="memories.programmemory.partition2.end"
                   value="${memories.programmemory.partition2.end.value}"/>
@@ -814,7 +831,7 @@
         <property key="programoptions.preservedataflash" value="false"/>
         <property key="programoptions.preserveeeprom" value="false"/>
         <property key="programoptions.preserveprogramrange" value="false"/>
-        <property key="programoptions.preserveprogramrange.end" value="0x3fff"/>
+        <property key="programoptions.preserveprogramrange.end" value="0x7fff"/>
         <property key="programoptions.preserveprogramrange.start" value="0x0"/>
         <property key="programoptions.preserveuserid" value="false"/>
         <property key="programoptions.programcalmem" value="false"/>
@@ -824,19 +841,110 @@
         <property key="programoptions.uselvpprogramming" value="false"/>
         <property key="voltagevalue" value="5.0"/>
       </PICkit3PlatformTool>
+      <PK3OBPlatformTool>
+        <property key="AutoSelectMemRanges" value="auto"/>
+        <property key="SecureSegment.SegmentProgramming" value="FullChipProgramming"/>
+        <property key="ToolFirmwareFilePath"
+                  value="Press to browse for a specific firmware version"/>
+        <property key="ToolFirmwareOption.UseLatestFirmware" value="true"/>
+        <property key="memories.bootflash" value="true"/>
+        <property key="memories.configurationmemory" value="true"/>
+        <property key="memories.dataflash" value="true"/>
+        <property key="memories.eeprom" value="true"/>
+        <property key="memories.id" value="true"/>
+        <property key="memories.programmemory" value="true"/>
+        <property key="memories.programmemory.end" value="0x7fff"/>
+        <property key="memories.programmemory.start" value="0x0"/>
+        <property key="memories.userotp" value="true"/>
+        <property key="poweroptions.powerenable" value="false"/>
+        <property key="programoptions.eraseb4program" value="true"/>
+        <property key="programoptions.preservedataflash" value="false"/>
+        <property key="programoptions.preserveeeprom" value="false"/>
+        <property key="programoptions.preserveprogramrange" value="false"/>
+        <property key="programoptions.preserveprogramrange.end" value="0x3f"/>
+        <property key="programoptions.preserveprogramrange.start" value="0x0"/>
+        <property key="programoptions.usehighvoltageonmclr" value="false"/>
+        <property key="programoptions.uselvpprogramming" value="false"/>
+        <property key="voltagevalue" value="5.0"/>
+      </PK3OBPlatformTool>
+      <RealICEPlatformTool>
+        <property key="AutoSelectMemRanges" value="auto"/>
+        <property key="Freeze Peripherals" value="true"/>
+        <property key="RIExTrigs.Five" value="OFF"/>
+        <property key="RIExTrigs.Four" value="OFF"/>
+        <property key="RIExTrigs.One" value="OFF"/>
+        <property key="RIExTrigs.Seven" value="OFF"/>
+        <property key="RIExTrigs.Six" value="OFF"/>
+        <property key="RIExTrigs.Three" value="OFF"/>
+        <property key="RIExTrigs.Two" value="OFF"/>
+        <property key="RIExTrigs.Zero" value="OFF"/>
+        <property key="SecureSegment.SegmentProgramming" value="FullChipProgramming"/>
+        <property key="ToolFirmwareFilePath"
+                  value="Press to browse for a specific firmware version"/>
+        <property key="ToolFirmwareOption.UseLatestFirmware" value="true"/>
+        <property key="debugoptions.useswbreakpoints" value="false"/>
+        <property key="hwtoolclock.frcindebug" value="false"/>
+        <property key="hwtoolclock.instructionspeed" value="4"/>
+        <property key="hwtoolclock.units" value="mips"/>
+        <property key="memories.aux" value="false"/>
+        <property key="memories.bootflash" value="true"/>
+        <property key="memories.configurationmemory" value="true"/>
+        <property key="memories.configurationmemory2" value="true"/>
+        <property key="memories.dataflash" value="true"/>
+        <property key="memories.eeprom" value="true"/>
+        <property key="memories.flashdata" value="true"/>
+        <property key="memories.id" value="true"/>
+        <property key="memories.instruction.ram" value="true"/>
+        <property key="memories.instruction.ram.end"
+                  value="${memories.instruction.ram.end.value}"/>
+        <property key="memories.instruction.ram.start"
+                  value="${memories.instruction.ram.start.value}"/>
+        <property key="memories.programmemory" value="true"/>
+        <property key="memories.programmemory.end" value="0x7fff"/>
+        <property key="memories.programmemory.partition2" value="true"/>
+        <property key="memories.programmemory.partition2.end"
+                  value="${memories.programmemory.partition2.end.value}"/>
+        <property key="memories.programmemory.partition2.start"
+                  value="${memories.programmemory.partition2.start.value}"/>
+        <property key="memories.programmemory.start" value="0x0"/>
+        <property key="poweroptions.powerenable" value="false"/>
+        <property key="programoptions.donoteraseauxmem" value="false"/>
+        <property key="programoptions.eraseb4program" value="true"/>
+        <property key="programoptions.preservedataflash" value="false"/>
+        <property key="programoptions.preserveeeprom" value="false"/>
+        <property key="programoptions.preserveprogramrange" value="false"/>
+        <property key="programoptions.preserveprogramrange.end" value="0x7fff"/>
+        <property key="programoptions.preserveprogramrange.start" value="0x0"/>
+        <property key="programoptions.preserveuserid" value="false"/>
+        <property key="programoptions.programcalmem" value="false"/>
+        <property key="programoptions.programuserotp" value="false"/>
+        <property key="programoptions.usehighvoltageonmclr" value="false"/>
+        <property key="programoptions.uselvpprogramming" value="false"/>
+        <property key="tracecontrol.disablemacros" value="false"/>
+        <property key="tracecontrol.include.timestamp" value="summarydataenabled"/>
+        <property key="tracecontrol.medium" value="0"/>
+        <property key="tracecontrol.portselect" value="0"/>
+        <property key="tracecontrol.select" value="0"/>
+        <property key="tracecontrol.spiselect" value="0"/>
+        <property key="tracecontrol.stallontracebufferfull" value="false"/>
+        <property key="tracecontrol.tracebufmax" value="546000"/>
+        <property key="tracecontrol.tracefile" value="defmplabxtrace.log"/>
+        <property key="tracecontrol.tracefilemax" value="10000000"/>
+        <property key="voltagevalue" value="5.0"/>
+      </RealICEPlatformTool>
       <Simulator>
         <property key="codecoverage.enabled" value="Disable"/>
         <property key="codecoverage.enableoutputtofile" value="false"/>
         <property key="codecoverage.outputfile" value=""/>
         <property key="oscillator.auxfrequency" value="120"/>
         <property key="oscillator.auxfrequencyunit" value="Mega"/>
-        <property key="oscillator.frequency" value="1"/>
+        <property key="oscillator.frequency" value="12"/>
         <property key="oscillator.frequencyunit" value="Mega"/>
         <property key="oscillator.rcfrequency" value="250"/>
         <property key="oscillator.rcfrequencyunit" value="Kilo"/>
         <property key="performancedata.show" value="false"/>
         <property key="periphADC1.altscl" value="false"/>
-        <property key="periphADC1.minTacq" value=""/>
+        <property key="periphADC1.minTacq" value="5"/>
         <property key="periphADC1.tacqunits" value="microseconds"/>
         <property key="periphADC2.altscl" value="false"/>
         <property key="periphADC2.minTacq" value=""/>
@@ -861,7 +969,7 @@
         <property key="uart10io.uartioenabled" value="false"/>
         <property key="uart1io.output" value="window"/>
         <property key="uart1io.outputfile" value=""/>
-        <property key="uart1io.uartioenabled" value="false"/>
+        <property key="uart1io.uartioenabled" value="true"/>
         <property key="uart2io.output" value="window"/>
         <property key="uart2io.outputfile" value=""/>
         <property key="uart2io.uartioenabled" value="false"/>
@@ -1112,6 +1220,14 @@
         <property key="stack-size-main" value="auto"/>
         <property key="stack-type" value="compiled"/>
       </XC8-config-global>
+      <item path="system_config/18f2550/system_config.h" ex="true" overriding="false">
+        <HI-TECH-COMP>
+        </HI-TECH-COMP>
+        <HI-TECH-LINK>
+        </HI-TECH-LINK>
+        <XC8-config-global>
+        </XC8-config-global>
+      </item>
     </conf>
   </confs>
 </configurationDescriptor>

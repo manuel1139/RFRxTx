@@ -14,28 +14,27 @@
  * specific areas.
  */
 #if defined(FIXED_ADDRESS_MEMORY)
-    #if defined(COMPILER_MPLAB_C18)
-        #pragma udata HID_CUSTOM_OUT_DATA_BUFFER = HID_CUSTOM_OUT_DATA_BUFFER_ADDRESS
-        unsigned char ReceivedDataBuffer[64];
-        #pragma udata HID_CUSTOM_IN_DATA_BUFFER = HID_CUSTOM_IN_DATA_BUFFER_ADDRESS
-        unsigned char ToSendDataBuffer[64];
-        #pragma udata
+#if defined(COMPILER_MPLAB_C18)
+#pragma udata HID_CUSTOM_OUT_DATA_BUFFER = HID_CUSTOM_OUT_DATA_BUFFER_ADDRESS
+unsigned char ReceivedDataBuffer[64];
+#pragma udata HID_CUSTOM_IN_DATA_BUFFER = HID_CUSTOM_IN_DATA_BUFFER_ADDRESS
+unsigned char ToSendDataBuffer[64];
+#pragma udata
 
-    #else defined(__XC8)
-        unsigned char ReceivedDataBuffer[64] @ HID_CUSTOM_OUT_DATA_BUFFER_ADDRESS;
-        unsigned char ToSendDataBuffer[64] @ HID_CUSTOM_IN_DATA_BUFFER_ADDRESS;
-    #endif
+#else defined(__XC8)
+unsigned char ReceivedDataBuffer[64] @ HID_CUSTOM_OUT_DATA_BUFFER_ADDRESS;
+unsigned char ToSendDataBuffer[64] @ HID_CUSTOM_IN_DATA_BUFFER_ADDRESS;
+#endif
 #else
-    unsigned char ReceivedDataBuffer[64];
-    unsigned char ToSendDataBuffer[64];
+unsigned char ReceivedDataBuffer[64];
+unsigned char ToSendDataBuffer[64];
 #endif
 
-volatile USB_HANDLE USBOutHandle;    
+volatile USB_HANDLE USBOutHandle;
 volatile USB_HANDLE USBInHandle;
 
 /** DEFINITIONS ****************************************************/
-typedef enum
-{
+typedef enum {
     COMMAND_TOGGLE_LED = 0x80,
     COMMAND_GET_BUTTON_STATUS = 0x81,
     COMMAND_READ_POTENTIOMETER = 0x37
@@ -44,109 +43,123 @@ typedef enum
 /** FUNCTIONS ******************************************************/
 
 /*********************************************************************
-* Function: void APP_DeviceCustomHIDInitialize(void);
-*
-* Overview: Initializes the Custom HID demo code
-*
-* PreCondition: None
-*
-* Input: None
-*
-* Output: None
-*
-********************************************************************/
-void APP_DeviceCustomHIDInitialize()
-{
+ * Function: void APP_DeviceCustomHIDInitialize(void);
+ *
+ * Overview: Initializes the Custom HID demo code
+ *
+ * PreCondition: None
+ *
+ * Input: None
+ *
+ * Output: None
+ *
+ ********************************************************************/
+void APP_DeviceCustomHIDInitialize() {
     //initialize the variable holding the handle for the last
     // transmission
     USBInHandle = 0;
 
     //enable the HID endpoint
-    USBEnableEndpoint(CUSTOM_DEVICE_HID_EP, USB_IN_ENABLED|USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
+    USBEnableEndpoint(CUSTOM_DEVICE_HID_EP, USB_IN_ENABLED | USB_OUT_ENABLED | USB_HANDSHAKE_ENABLED | USB_DISALLOW_SETUP);
 
     //Re-arm the OUT endpoint for the next packet
-    USBOutHandle = (volatile USB_HANDLE)HIDRxPacket(CUSTOM_DEVICE_HID_EP,(uint8_t*)&ReceivedDataBuffer,64);
+    USBOutHandle = (volatile USB_HANDLE)HIDRxPacket(CUSTOM_DEVICE_HID_EP, (uint8_t*) & ReceivedDataBuffer, 64);
 }
 
 /*********************************************************************
-* Function: void APP_DeviceCustomHIDTasks(void);
-*
-* Overview: Keeps the Custom HID demo running.
-*
-* PreCondition: The demo should have been initialized and started via
-*   the APP_DeviceCustomHIDInitialize() and APP_DeviceCustomHIDStart() demos
-*   respectively.
-*
-* Input: None
-*
-* Output: None
-*
-********************************************************************/
-void APP_DeviceCustomHIDTasks()
-{   
+ * Function: void APP_DeviceCustomHIDTasks(void);
+ *
+ * Overview: Keeps the Custom HID demo running.
+ *
+ * PreCondition: The demo should have been initialized and started via
+ *   the APP_DeviceCustomHIDInitialize() and APP_DeviceCustomHIDStart() demos
+ *   respectively.
+ *
+ * Input: None
+ *
+ * Output: None
+ *
+ ********************************************************************/
+
+void APP_DeviceCustomHIDTasks() {
     uint16_t code;
     //Check if we have received an OUT data packet from the host
-    if(HIDRxHandleBusy(USBOutHandle) == false)
-    {   
+
+    if (get_code().code != 0) {
+        if (!HIDTxHandleBusy(USBInHandle)) {
+            uint32_t *pData, data;         
+            data = get_code().code;
+            pData = (uint32_t*) &ToSendDataBuffer[0];
+            *pData = data;        
+            USBInHandle = HIDTxPacket(CUSTOM_DEVICE_HID_EP, (uint8_t*) & ToSendDataBuffer[0], 8);
+        }
+
+    }
+
+    if (HIDRxHandleBusy(USBOutHandle) == false) {
         //We just received a packet of data from the USB host.
         //Check the first uint8_t of the packet to see what command the host
         //application software wants us to fulfill.
-        switch(ReceivedDataBuffer[0])				//Look at the data the host sent, to see what kind of application specific command it sent.
+        switch (ReceivedDataBuffer[0]) //Look at the data the host sent, to see what kind of application specific command it sent.
         {
-            case COMMAND_TOGGLE_LED:  
-                
+            case COMMAND_TOGGLE_LED:
+
                 code = ReceivedDataBuffer[1] << 8;
                 code |= ReceivedDataBuffer[2];
-                
-                    send_code(pollin_rf_rc, code);
-                    LED1 = 1;
+
+                send_code(pollin_rf_rc, code);
+                LED1 = 1;
                 break;
-            case COMMAND_GET_BUTTON_STATUS:  //Get push button state
+            case COMMAND_GET_BUTTON_STATUS: //Get push button state
                 //Check to make sure the endpoint/buffer is free before we modify the contents
-                if(!HIDTxHandleBusy(USBInHandle))
-                {
-                    ToSendDataBuffer[0] = 0x81;				//Echo back to the host PC the command we are fulfilling in the first uint8_t.  In this case, the Get Pushbutton State command.
-    /*                if(BUTTON_IsPressed(BUTTON_USB_DEVICE_HID_CUSTOM) == false)	//pushbutton not pressed, pull up resistor on circuit board is pulling the PORT pin high
-                    {
-                            ToSendDataBuffer[1] = 0x01;
-                    }
-                    else									//sw3 must be == 0, pushbutton is pressed and overpowering the pull up resistor
-                    {
-                            ToSendDataBuffer[1] = 0x00;
-                    }
-     * */
+                if (!HIDTxHandleBusy(USBInHandle)) {
+                    ToSendDataBuffer[0] = 0x81; //Echo back to the host PC the command we are fulfilling in the first uint8_t.  In this case, the Get Pushbutton State command.
+                    /*                if(BUTTON_IsPressed(BUTTON_USB_DEVICE_HID_CUSTOM) == false)	//pushbutton not pressed, pull up resistor on circuit board is pulling the PORT pin high
+                                    {
+                                            ToSendDataBuffer[1] = 0x01;
+                                    }
+                                    else									//sw3 must be == 0, pushbutton is pressed and overpowering the pull up resistor
+                                    {
+                                            ToSendDataBuffer[1] = 0x00;
+                                    }
+                     * */
                     //Prepare the USB module to send the data packet to the host
-                    USBInHandle = HIDTxPacket(CUSTOM_DEVICE_HID_EP, (uint8_t*)&ToSendDataBuffer[0],64);
+                    USBInHandle = HIDTxPacket(CUSTOM_DEVICE_HID_EP, (uint8_t*) & ToSendDataBuffer[0], 64);
                 }
                 break;
 
-            case COMMAND_READ_POTENTIOMETER:	//Read POT command.  Uses ADC to measure an analog voltage on one of the ANxx I/O pins, and returns the result to the host
-                {
-                    uint16_t pot;
+            case COMMAND_READ_POTENTIOMETER: //Read POT command.  Uses ADC to measure an analog voltage on one of the ANxx I/O pins, and returns the result to the host
+            {
+                uint16_t pot;
 
-                    //Check to make sure the endpoint/buffer is free before we modify the contents
-                    if(!HIDTxHandleBusy(USBInHandle))
-                    {
-                        //Use ADC to read the I/O pin voltage.  See the relevant HardwareProfile - xxxxx.h file for the I/O pin that it will measure.
-                        //Some demo boards, like the PIC18F87J50 FS USB Plug-In Module board, do not have a potentiometer (when used stand alone).
-                        //This function call will still measure the analog voltage on the I/O pin however.  To make the demo more interesting, it
-                        //is suggested that an external adjustable analog voltage should be applied to this pin.
+                //Check to make sure the endpoint/buffer is free before we modify the contents
+                if (!HIDTxHandleBusy(USBInHandle)) {
+                    //Use ADC to read the I/O pin voltage.  See the relevant HardwareProfile - xxxxx.h file for the I/O pin that it will measure.
+                    //Some demo boards, like the PIC18F87J50 FS USB Plug-In Module board, do not have a potentiometer (when used stand alone).
+                    //This function call will still measure the analog voltage on the I/O pin however.  To make the demo more interesting, it
+                    //is suggested that an external adjustable analog voltage should be applied to this pin.
 
-  //                      pot = ADC_Read10bit(ADC_CHANNEL_POTENTIOMETER);
-                        pot = 0x123;
-                        ToSendDataBuffer[0] = 0x37;  	//Echo back to the host the command we are fulfilling in the first uint8_t.  In this case, the Read POT (analog voltage) command.
-                        ToSendDataBuffer[1] = (uint8_t)pot; //LSB
-                        ToSendDataBuffer[2] = pot >> 8;     //MSB
+                    //                      pot = ADC_Read10bit(ADC_CHANNEL_POTENTIOMETER);
+                    pot = 0x123;
+                    ToSendDataBuffer[0] = 0x37; //Echo back to the host the command we are fulfilling in the first uint8_t.  In this case, the Read POT (analog voltage) command.
+                    ToSendDataBuffer[1] = (uint8_t) pot; //LSB
+                    ToSendDataBuffer[2] = pot >> 8; //MSB
 
 
-                        //Prepare the USB module to send the data packet to the host
-                        USBInHandle = HIDTxPacket(CUSTOM_DEVICE_HID_EP, (uint8_t*)&ToSendDataBuffer[0],64);
-                    }
+                    //Prepare the USB module to send the data packet to the host
+                    USBInHandle = HIDTxPacket(CUSTOM_DEVICE_HID_EP, (uint8_t*) & ToSendDataBuffer[0], 64);
                 }
+            }
                 break;
         }
         //Re-arm the OUT endpoint, so we can receive the next OUT data packet 
         //that the host may try to send us.
-        USBOutHandle = HIDRxPacket(CUSTOM_DEVICE_HID_EP, (uint8_t*)&ReceivedDataBuffer, 64);
+        USBOutHandle = HIDRxPacket(CUSTOM_DEVICE_HID_EP, (uint8_t*) & ReceivedDataBuffer, 64);
     }
+
+    //see if we received new hid control message 
+
+
+
+
 }

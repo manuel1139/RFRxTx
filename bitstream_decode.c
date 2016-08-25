@@ -15,6 +15,11 @@
 void rx_raw(uint16_t);
 uint16_t swap(uint16_t val);
 
+
+//file globals
+static xcode current_code = 0;
+static xcode last_code = 0;
+
 enum fsm_state {
     idle,
     header_a,
@@ -131,7 +136,6 @@ void ir_rx(uint16_t bit_time) {
                 }
                 bit_cnt = 0;
                 reset_fsm(&ir_rx_fsm);
-                ir_rx_fsm.state = idle;
             }
             break;
         default:
@@ -163,13 +167,13 @@ void rf_tx(xcode* rf_code) {
             if (pollin_rf_rc.hdr_time_a != 0) {
                 RF_OUT = ~RF_OUT;
                 rf_tx_fsm.state = header_b;
-                WriteTimer3(0xFFFF - pollin_rf_rc.hdr_time_a);
+                WriteTimer0(0xFFFF - pollin_rf_rc.hdr_time_a);
                 break;
             }
         case header_b:
             RF_OUT = ~RF_OUT;
             rf_tx_fsm.state = first_edge;
-            WriteTimer3(0xFFFF - pollin_rf_rc.hdr_time_b);
+            WriteTimer0(0xFFFF - pollin_rf_rc.hdr_time_b);
             break;
         case first_edge:
             RF_OUT = ~RF_OUT;
@@ -179,16 +183,16 @@ void rf_tx(xcode* rf_code) {
                 tmp = rf_code->code & (1 << bit_cnt);
             }
             rf_tx_fsm.state = second_edge;
-            if (tmp) WriteTimer3(0xFFFF - pollin_rf_rc.high_1);
+            if (tmp) WriteTimer0(0xFFFF - pollin_rf_rc.high_1);
             else {
-                WriteTimer3(0xFFFF - pollin_rf_rc.low_0);
+                WriteTimer0(0xFFFF - pollin_rf_rc.low_0);
             }
             break;
         case second_edge:
             RF_OUT = ~RF_OUT;
-            if (tmp) WriteTimer3(0xFFFF - pollin_rf_rc.low_1);
+            if (tmp) WriteTimer0(0xFFFF - pollin_rf_rc.low_1);
             else {
-                WriteTimer3(0xFFFF - pollin_rf_rc.high_0);
+                WriteTimer0(0xFFFF - pollin_rf_rc.high_0);
             }
             if (bit_cnt > 0) {
                 bit_cnt--;
@@ -258,14 +262,14 @@ void ReceiveRF(uint16_t bit_time) {
 }
  */
 void rf_tx_start() {
-    OpenTimer3(T3_16BIT_RW &
-            T3_PS_1_8 &
-            T3_SOURCE_INT);
+    OpenTimer0(T0_16BIT &
+            T0_PS_1_8 &
+            T0_SOURCE_INT);
     RF_OUT = 0;
 }
 
 void rf_tx_stop() {
-    CloseTimer3();
+    CloseTimer0();
 }
 
 /*
@@ -313,12 +317,26 @@ void high_priority interrupt high_isr(void) {
         WriteTimer1(0);
         PIR1bits.CCP1IF = 0;
     }
+    
     if (PIR1bits.TMR1IF) {
         reset_fsm(&ir_rx_fsm);
         PIR1bits.TMR1IF = 0;
     }
-    if (PIR2bits.TMR3IF) {
+
+    if (INTCONbits.TMR0IF) {
         rf_tx(&code_to_send);
-        PIR2bits.TMR3IF = 0;
+        INTCONbits.TMR0IF = 0;
     }
+}
+
+xcode get_code() {
+    return last_code;
+}
+
+xcode get_last_code() {
+    last_code = current_code;
+    current_code.code = 0;
+    current_code.rc = 0;
+    return last_code;
+
 }

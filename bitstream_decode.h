@@ -38,8 +38,8 @@ typedef struct {
 
 
 const struct code2func terratec_ir_rc_codes[] = {
-    KEY_1, NULL,
-    KEY_2, NULL
+    KEY_1, 0,
+    KEY_2, 0
 };
 
 const remote terratec_ir_rc = {

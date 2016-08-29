@@ -44,7 +44,18 @@ int main(void) {
    
 
     while (1) {
+        //Non USB tasks
+        LED1 = IR_RCV;
         LED2 = RF_OUT;
+        
+        if (get_code().code != 0) {
+            if (get_code().rc == &terratec_ir_rc) {
+              send_code(&pollin_rf_rc, S2_OFF);
+            }
+        }
+                
+                
+        //USB Only tasks
         /* If the USB device isn't configured yet, we can't really do anything
          * else since we don't have a host to talk to.  So jump back to the
          * top of the while loop. */

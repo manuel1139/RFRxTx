@@ -33,26 +33,17 @@ read as ?0?.
 //#define IR_RCV_TRIS TRISCbits.TRISC2 see above timer1
 #define IR_RCV      PORTCbits.CCP1
         
-#define RF_OUT_TRIS TRISAbits.TRISA5
-#define RF_OUT LATAbits.LATA5
+#define RF_OUT_TRIS TRISAbits.TRISA0
+#define RF_OUT LATAbits.LATA0
 
-#define SW1 PORTBbits.RB0
-#define SW1_TRIS TRISBbits.TRISB0
-
-#define SW2 PORTBbits.RB1
-#define SW2_TRIS TRISBbits.TRISB1
-
-#define SW3 PORTBbits.RB2
-#define SW3_TRIS TRISBbits.TRISB2
-
-#define LED1 LATBbits.LB4
-#define LED1_TRIS TRISBbits.RB5
+char dummy;    
+#define LED1_TRIS dummy
+#define LED1 dummy
     
-#define LED2 LATBbits.LB4
-#define LED2_TRIS TRISBbits.RB4
-    
-    
-    void SYSTEM_Initialize(void);
+#define LED2_TRIS dummy
+#define LED2 dummy
+
+void SYSTEM_Initialize(void);
 
 #ifdef	__cplusplus
 }

@@ -107,7 +107,7 @@ void APP_DeviceCustomHIDTasks() {
                 code = ReceivedDataBuffer[1] << 8;
                 code |= ReceivedDataBuffer[2];
 
-                send_code(pollin_rf_rc, code);
+                send_code(&pollin_rf_rc, code);
                 LED1 = 1;
                 break;
             case COMMAND_GET_BUTTON_STATUS: //Get push button state

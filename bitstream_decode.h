@@ -16,12 +16,22 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
-    
-    
+       
 const struct code2func {
     uint16_t key;
     void (*txfunc)();
 };
+
+const struct code2func xxterratec_ir_rc_codes[] = {
+    KEY_1, 0,
+    KEY_2, 0
+};
+
+const uint16_t terratec_ir_rc_codes[] = {
+    KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, 
+    KEY_6, KEY_7, KEY_8, KEY_9 
+};
+
 
 typedef struct {
     //const unsigned char* name;
@@ -33,14 +43,9 @@ typedef struct {
     uint16_t high_0;
     uint16_t pre_code;
     uint8_t bit_cnt;
-    const struct code2func *c2f;
+    //const struct code2func *c2f;
+    const uint16_t *keys;
 } remote;
-
-
-const struct code2func terratec_ir_rc_codes[] = {
-    KEY_1, 0,
-    KEY_2, 0
-};
 
 const remote terratec_ir_rc = {
    //"Terratec",
@@ -52,14 +57,14 @@ const remote terratec_ir_rc = {
     0,
     0x28D7, //pre_code
     32,
-    &terratec_ir_rc_codes
+    &terratec_ir_rc_codes[0]
 }; //codes
 
-const struct code2func pollin_rf_rc_codes[] = {
-    S1_ON, 0,
-    S1_OFF, 0,
-    S2_ON, 0,
-    S2_OFF, 0
+const uint16_t pollin_rf_rc_codes[] = {
+    S1_ON,
+    S1_OFF,
+    S2_ON, 
+    S2_OFF,
 };
 
 const remote pollin_rf_rc = {
@@ -84,7 +89,7 @@ typedef struct {
 void ir_rx_start();
 void rf_tx_start();
 
-void send_code(const remote, uint16_t);
+void send_code(const remote *, uint16_t);
 xcode get_code();
 xcode get_last_code();
 

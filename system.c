@@ -17,11 +17,9 @@ void SYSTEM_Initialize(void)
     /*******************************************************************/
     INTCONbits.GIEH = 1;
     INTCONbits.GIEL = 1;
-
-    SW1_TRIS = INPUT_PIN;
-    SW2_TRIS = INPUT_PIN;
-    SW3_TRIS = INPUT_PIN;
+    RCONbits.IPEN = 1; //Interrupt priority
     
+        
     RF_OUT_TRIS = OUTPUT_PIN;
 
     LED1_TRIS = OUTPUT_PIN;

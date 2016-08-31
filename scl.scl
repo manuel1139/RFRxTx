@@ -13,12 +13,13 @@ begin
     // Pin/Register Actions
     process is
     begin
-        wait for 4000 ic;
-        report "Stimulus actions after 1000 ic";
         CCP1 <= '1';
         wait for 1000 ic;
-        report "Stimulus actions after 2000 ic";
+        report "Stimulus actions after 1000 ic";
         CCP1 <= '0';
+        wait for 16#1FE0# ic;
+        report "Stimulus actions after 2000 ic";
+        CCP1 <= '1';
 
         wait;
     end process;

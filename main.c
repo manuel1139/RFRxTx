@@ -38,14 +38,13 @@ int main(void) {
 
 #undef __DEBUG    
 #ifdef __DEBUG
-    send_code(pollin_rf_rc, S2_ON);
+    send_code(&pollin_rf_rc, S2_ON);
     while (1);
 #endif
    
-
     while (1) {
         //Non USB tasks
-        LED1 = IR_RCV;
+        LED1 = ~IR_RCV;
         LED2 = RF_OUT;
         
         if (get_code().code != 0) {
@@ -72,7 +71,7 @@ int main(void) {
             /* Jump back to the top of the while loop. */
             continue;
         }
-        LED1 = 1;
+
         //Application specific tasks
         APP_DeviceCustomHIDTasks();
 

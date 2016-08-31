@@ -34,9 +34,8 @@
       </logicalFolder>
       <itemPath>bitstream_decode.h</itemPath>
       <itemPath>remote_keys.h</itemPath>
-      <itemPath>app_device_custom_hid.h</itemPath>
-      <itemPath>io_mapping.h</itemPath>
       <itemPath>usb_config.h</itemPath>
+      <itemPath>app_device_custom_hid.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -106,7 +105,7 @@
         <property key="asmlist" value="true"/>
         <property key="define-macros" value=""/>
         <property key="extra-include-directories"
-                  value="..\..\..\..\..\..\microchip\mla\v2015_05_15\framework\usb\inc;./;system_config\18f2450"/>
+                  value="..\..\..\..\..\..\microchip\mla\v2015_05_15\framework\usb\inc;./;system_config\18f2550"/>
         <property key="identifier-length" value="255"/>
         <property key="operation-mode" value="free"/>
         <property key="opt-xc8-compiler-strict_ansi" value="false"/>
@@ -162,7 +161,7 @@
         <property key="initialize-data" value="true"/>
         <property key="keep-generated-startup.as" value="false"/>
         <property key="link-in-c-library" value="true"/>
-        <property key="link-in-peripheral-library" value="true"/>
+        <property key="link-in-peripheral-library" value="false"/>
         <property key="managed-stack" value="false"/>
         <property key="opt-xc8-linker-file" value="false"/>
         <property key="opt-xc8-linker-link_startup" value="false"/>
@@ -379,7 +378,7 @@
         <property key="reset.scl" value="false"/>
         <property key="reset.type" value="MCLR"/>
         <property key="tracecontrol.include.timestamp" value="summarydataenabled"/>
-        <property key="tracecontrol.select" value="1"/>
+        <property key="tracecontrol.select" value="0"/>
         <property key="tracecontrol.stallontracebufferfull" value="false"/>
         <property key="tracecontrol.timestamp" value="0"/>
         <property key="tracecontrol.tracebufmax" value="546000"/>
@@ -674,7 +673,7 @@
         <targetDevice>PIC18F2450</targetDevice>
         <targetHeader></targetHeader>
         <targetPluginBoard></targetPluginBoard>
-        <platformTool>PICkit3PlatformTool</platformTool>
+        <platformTool>Simulator</platformTool>
         <languageToolchain>XC8</languageToolchain>
         <languageToolchainVersion>1.38</languageToolchainVersion>
         <platform>3</platform>

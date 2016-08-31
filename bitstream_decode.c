@@ -15,6 +15,7 @@
 static xcode actual_code = 0;
 static xcode last_code = 0;
 
+
 enum fsm_state {
     idle,
     header_a,
@@ -38,35 +39,36 @@ void reset_fsm(fsm* fsm);
 void rf_tx(xcode*);
 void ir_tx();
 
-
 void reset_fsm(fsm* fsm) {
     fsm->state = idle;
 }
-    
- /*********************************************************
-  * 
-  * OpenRxCapture  
-  * 
-  * 
-  * 
- CCP1CON
-    76543210
-    xx
-      xx     //unsused in capture mode
-        0000 >reest ccp module
-        0100 >capt. every falling edge
-        0101 capt. every rising edge
+
+/*********************************************************
+ * 
+ * OpenRxCapture  
+ * 
+ * 
+ * 
+CCP1CON
+   76543210
+   xx
+     xx     //unsused in capture mode
+       0000 >reest ccp module
+       0100 >capt. every falling edge
+       0101 capt. every rising edge
 
  ************************************************************/
 #define CAP_EVERY_FALL_EDGE     0b00000100  	/* Capture on every falling edge*/
 #define CAP_EVERY_RISE_EDGE     0b00000101  	/* Capture on every rising edge*/
+
 void OpenRxCapture(uint8_t cfg) {
     CCP1CON = cfg & 0x0F;
-    PIR1bits.CCP1IF = 0;   // Clear the interrupt flag
-    PIE1bits.CCP1IE = 1;   // Enable the interrupt
+    PIR1bits.CCP1IF = 0; // Clear the interrupt flag
+    PIE1bits.CCP1IE = 1; // Enable the interrupt
 
     IPR1bits.CCP1IP = 1; //Timer 1 as source
 }
+
 uint16_t ReadRxCapture() {
     uint16_t val = 0;
     val = CCPR1H << 8;
@@ -75,9 +77,8 @@ uint16_t ReadRxCapture() {
 }
 
 void CloseRxCapture() {
-    
-}
 
+}
 
 /**************************************************************
  T1CON
@@ -98,14 +99,16 @@ void OpenRxTimer() {
     TMR1L = 0;
     PIR1bits.TMR1IF = 0;
     PIE1bits.TMR1IE = 1;
-    
+
 }
+
 uint16_t ReadRxTimer() {
     uint16_t val = 0;
     val = TMR1H << 8;
     val |= TMR1L;
     return val;
 }
+
 void WriteRxTimer(uint16_t val) {
     TMR1H = val >> 8;
     TMR1L = val;
@@ -119,22 +122,24 @@ void WriteRxTimer(uint16_t val) {
  0      timer 16bit
   0     clock source -> internal clock
    x    surce edge sel
-    1   prescaler enabled
+    1   prescaler bypass
      010  1:8 prescaler
  ******************************************************************/
 void OpenTxTimer() {
-    T0CON = 0b10001010;
+    T0CON = 0b10000010;
     TMR0H = 0x0;
     TMR0L = 0x0;
     INTCONbits.TMR0IF = 0;
     INTCONbits.TMR0IE = 1;
 }
+
 void WriteTxTimer(uint16_t val) {
     TMR0H = (val >> 8);
-    TMR0L =  val;
+    TMR0L = val;
 }
+
 void CloseTxTimer() {
-    
+
 }
 
 void ir_rx_start() {
@@ -202,7 +207,7 @@ void ir_rx(uint16_t bit_time) {
                 current_code.code = swap(current_code.code);
 
                 if (ir_rc.pre_code == terratec_ir_rc.pre_code) {
-                    for (uint8_t i = 0; i < NELEMS(terratec_ir_rc_codes); i++) {                        
+                    for (uint8_t i = 0; i < NELEMS(terratec_ir_rc_codes); i++) {
                         if (current_code.code == terratec_ir_rc.keys[i]) {
                             //send a command
                             last_code = actual_code;
@@ -338,7 +343,7 @@ void ReceiveRF(uint16_t bit_time) {
 }
  */
 void rf_tx_start() {
-    
+
     OpenTxTimer();
     RF_OUT = 0;
 }
@@ -347,36 +352,21 @@ void rf_tx_stop() {
     CloseTxTimer();
 }
 
-/*
-void SendSW1() {
-    struct ircode snd_code;
-
-    StartSender();
-
-    snd_code.hdr_time_a = 0x03F0;
-    snd_code.dbyte[0] = 0x0B;
-    snd_code.dbyte[1] = 0x00;
-    snd_code.dbyte[2] = 0x82;
-
-    //    sender_fsm.state = header;
-    //SndData();   
-    //force start
-    WriteTimer3(0xFFFF);
-}
- */
-
-
+char get_raw_code = 1;
+char timeout = 0;
+uint8_t edge_cnt = 0;
 void rx_raw(uint16_t bit_time) {
-#define MAX_EDGE 35
+#define MAX_EDGE 90
     static uint16_t edge_times[MAX_EDGE];
-    static uint8_t edge_cnt = 0;
-
-    if (edge_cnt < MAX_EDGE) {
+    
+    if (edge_cnt < MAX_EDGE && timeout == 0) {
         edge_times[edge_cnt] = bit_time;
         edge_cnt++;
     } else {
-        //büffer füll
-        edge_cnt = 0;
+        if (edge_cnt != 0 && timeout == 1) {
+            edge_cnt = 0;
+        }
+        timeout=0;
     }
 }
 
@@ -387,14 +377,23 @@ void high_priority interrupt high_isr(void) {
     if (PIR1bits.CCP1IF) {
         //invert edge detection 
         CCP1CONbits.CCP1M0 = ~CCP1CONbits.CCP1M0;
-        ir_rx(ReadRxCapture());
-        //rx_raw(ReadRxCapture());
+
+        if (get_raw_code == 1) {
+            rx_raw(ReadRxCapture());
+        } else {
+            ir_rx(ReadRxCapture());
+        }
+
         WriteRxTimer(0);
         PIR1bits.CCP1IF = 0;
     }
-    
+
     if (PIR1bits.TMR1IF) {
-        reset_fsm(&ir_rx_fsm);
+        if (get_raw_code == 1) {
+            if (edge_count != 0 ) timeout = 1;
+        } else {
+            reset_fsm(&ir_rx_fsm);
+        }
         PIR1bits.TMR1IF = 0;
     }
 

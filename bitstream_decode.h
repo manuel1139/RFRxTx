@@ -70,7 +70,7 @@ const uint16_t pollin_rf_rc_codes[] = {
 const remote pollin_rf_rc = {
     //"Pollin",
     0x0, //header_a
-    0x03F0, //header_b
+    0x3F0, //header_b
     0x43F, //low_1
     0x7B2, //high_1
     0x3C8, //low_0

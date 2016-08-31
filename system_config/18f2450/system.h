@@ -40,8 +40,8 @@ char dummy;
 #define LED1_TRIS dummy
 #define LED1 dummy
     
-#define LED2_TRIS dummy
-#define LED2 dummy
+#define LED2_TRIS TRISAbits.TRISA1
+#define LED2 LATAbits.LATA1
 
 void SYSTEM_Initialize(void);
 

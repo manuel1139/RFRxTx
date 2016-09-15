@@ -6,18 +6,13 @@
                    projectFiles="true">
       <logicalFolder name="f1" displayName="framework" projectFiles="true">
         <logicalFolder name="f1" displayName="usb" projectFiles="true">
-          <itemPath>../../../../../../microchip/mla/v2015_05_15/framework/usb/inc/usb.h</itemPath>
-          <itemPath>../../../../../../microchip/mla/v2015_05_15/framework/usb/inc/usb_ch9.h</itemPath>
-          <itemPath>../../../../../../microchip/mla/v2015_05_15/framework/usb/inc/usb_common.h</itemPath>
-          <itemPath>../../../../../../microchip/mla/v2015_05_15/framework/usb/inc/usb_device.h</itemPath>
-          <itemPath>../../../../../../microchip/mla/v2015_05_15/framework/usb/inc/usb_device_hid.h</itemPath>
-          <itemPath>../../../../../../microchip/mla/v2015_05_15/framework/usb/inc/usb_hal.h</itemPath>
-          <itemPath>../../../../../../microchip/mla/v2015_05_15/framework/usb/inc/usb_hal_dspic33e.h</itemPath>
-          <itemPath>../../../../../../microchip/mla/v2015_05_15/framework/usb/inc/usb_hal_pic16f1.h</itemPath>
-          <itemPath>../../../../../../microchip/mla/v2015_05_15/framework/usb/inc/usb_hal_pic18.h</itemPath>
-          <itemPath>../../../../../../microchip/mla/v2015_05_15/framework/usb/inc/usb_hal_pic24.h</itemPath>
-          <itemPath>../../../../../../microchip/mla/v2015_05_15/framework/usb/inc/usb_hal_pic24e.h</itemPath>
-          <itemPath>../../../../../../microchip/mla/v2015_05_15/framework/usb/inc/usb_hal_pic24f.h</itemPath>
+          <itemPath>../../../../../../microchip/mla/framework/usb/inc/usb.h</itemPath>
+          <itemPath>../../../../../../microchip/mla/framework/usb/inc/usb_ch9.h</itemPath>
+          <itemPath>../../../../../../microchip/mla/framework/usb/inc/usb_common.h</itemPath>
+          <itemPath>../../../../../../microchip/mla/framework/usb/inc/usb_device.h</itemPath>
+          <itemPath>../../../../../../microchip/mla/framework/usb/inc/usb_device_hid.h</itemPath>
+          <itemPath>../../../../../../microchip/mla/framework/usb/inc/usb_hal.h</itemPath>
+          <itemPath>../../../../../../microchip/mla/framework/usb/inc/usb_hal_pic18.h</itemPath>
         </logicalFolder>
       </logicalFolder>
       <logicalFolder name="f3" displayName="system_config" projectFiles="true">
@@ -46,8 +41,8 @@
                    projectFiles="true">
       <logicalFolder name="f1" displayName="framework" projectFiles="true">
         <logicalFolder name="f1" displayName="usb" projectFiles="true">
-          <itemPath>../../../../../../microchip/mla/v2015_05_15/framework/usb/src/usb_device.c</itemPath>
-          <itemPath>../../../../../../microchip/mla/v2015_05_15/framework/usb/src/usb_device_hid.c</itemPath>
+          <itemPath>../../../../../../microchip/mla/framework/usb/src/usb_device.c</itemPath>
+          <itemPath>../../../../../../microchip/mla/framework/usb/src/usb_device_hid.c</itemPath>
         </logicalFolder>
       </logicalFolder>
       <itemPath>main.c</itemPath>
@@ -63,8 +58,9 @@
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
-    <Elem>../../../../../../microchip/mla/v2015_05_15/apps/usb/device/hid_custom/firmware/src</Elem>
     <Elem>.</Elem>
+    <Elem>../../../../../../microchip/mla/framework/usb/src</Elem>
+    <Elem>../../../../../../microchip/mla/framework/usb/inc</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -74,7 +70,7 @@
         <targetDevice>PIC18F2550</targetDevice>
         <targetHeader></targetHeader>
         <targetPluginBoard></targetPluginBoard>
-        <platformTool>PICkit3PlatformTool</platformTool>
+        <platformTool>Simulator</platformTool>
         <languageToolchain>XC8</languageToolchain>
         <languageToolchainVersion>1.38</languageToolchainVersion>
         <platform>3</platform>
@@ -105,7 +101,7 @@
         <property key="asmlist" value="true"/>
         <property key="define-macros" value=""/>
         <property key="extra-include-directories"
-                  value="..\..\..\..\..\..\microchip\mla\v2015_05_15\framework\usb\inc;./;system_config\18f2550"/>
+                  value="..\..\..\..\..\..\microchip\mla\framework\usb\inc;system_config\18f2550"/>
         <property key="identifier-length" value="255"/>
         <property key="operation-mode" value="free"/>
         <property key="opt-xc8-compiler-strict_ansi" value="false"/>
@@ -218,8 +214,7 @@
         <property key="AutoSelectMemRanges" value="auto"/>
         <property key="Freeze Peripherals" value="true"/>
         <property key="SecureSegment.SegmentProgramming" value="FullChipProgramming"/>
-        <property key="ToolFirmwareFilePath"
-                  value="C:\Program Files (x86)/Microchip/MPLABX/v3.35/mplab_ide/mplablibs/modules/ext/PICKIT3.jar/PK3FW_014335.jam"/>
+        <property key="ToolFirmwareFilePath" value=""/>
         <property key="ToolFirmwareOption.UseLatestFirmware" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
@@ -961,7 +956,6 @@
         <property key="oscillator.frequencyunit" value="Mega"/>
         <property key="oscillator.rcfrequency" value="250"/>
         <property key="oscillator.rcfrequencyunit" value="Kilo"/>
-        <property key="performancedata.show" value="false"/>
         <property key="periphADC1.altscl" value="false"/>
         <property key="periphADC1.minTacq" value="5"/>
         <property key="periphADC1.tacqunits" value="microseconds"/>
@@ -1041,9 +1035,32 @@
                   value="report"/>
         <property key="warningmessagebreakoptions.W0015_CORE_INVALID_ALT_WREG_SET"
                   value="report"/>
-        <property key="warningmessagebreakoptions.W0016_BSLIM_INSUFFICIENT_BOOT_SEGMENT"
+        <property key="warningmessagebreakoptions.W0016_CORE_STACK_ERROR"
                   value="report"/>
-        <property key="warningmessagebreakoptions.W0017_BSLIM_LIMITS_EXCEEDS_PROG_MEMORY"
+        <property key="warningmessagebreakoptions.W0017_CORE_ODD_RAMWORDACCESS"
+                  value="report"/>
+        <property key="warningmessagebreakoptions.W0018_CORE_UNIMPLEMENTED_RAMACCESS"
+                  value="report"/>
+        <property key="warningmessagebreakoptions.W0019_CORE_UNIMPLEMENTED_PROMACCESS"
+                  value="report"/>
+        <property key="warningmessagebreakoptions.W0020_CORE_ACCESS_NOTIN_X_SPACE"
+                  value="report"/>
+        <property key="warningmessagebreakoptions.W0021_CORE_ACCESS_NOTIN_Y_SPACE"
+                  value="report"/>
+        <property key="warningmessagebreakoptions.W0022_CORE_XMODEND_LESS_XMODSRT"
+                  value="report"/>
+        <property key="warningmessagebreakoptions.W0023_CORE_YMODEND_LESS_YMODSRT"
+                  value="report"/>
+        <property key="warningmessagebreakoptions.W0024_CORE_BITREV_MOD_IS_ZERO"
+                  value="report"/>
+        <property key="warningmessagebreakoptions.W0025_CORE_HARD_TRAP" value="report"/>
+        <property key="warningmessagebreakoptions.W0026_CORE_UNIMPLEMENTED_MEMORYACCESS"
+                  value="report"/>
+        <property key="warningmessagebreakoptions.W0027_CORE_UNIMPLEMENTED_EDSACCESS"
+                  value="report"/>
+        <property key="warningmessagebreakoptions.W0031_BSLIM_INSUFFICIENT_BOOT_SEGMENT"
+                  value="report"/>
+        <property key="warningmessagebreakoptions.W0032_BSLIM_LIMITS_EXCEEDS_PROG_MEMORY"
                   value="report"/>
         <property key="warningmessagebreakoptions.W0051_INSTRUCTION_DIV_NOT_ENOUGH_REPEAT"
                   value="report"/>
@@ -1060,6 +1077,10 @@
         <property key="warningmessagebreakoptions.W0105_SIM_INVALID_FIELD"
                   value="report"/>
         <property key="warningmessagebreakoptions.W0106_SIM_PERIPH_PARTIAL_SUPPORT"
+                  value="report"/>
+        <property key="warningmessagebreakoptions.W0107_SIM_NOT_SUPPORTED"
+                  value="report"/>
+        <property key="warningmessagebreakoptions.W0108_SIM_RESERVED_SETTING"
                   value="report"/>
         <property key="warningmessagebreakoptions.W0201_ADC_NO_STIMULUS_FILE"
                   value="report"/>

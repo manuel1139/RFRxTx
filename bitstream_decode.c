@@ -259,7 +259,7 @@ void rf_tx(xcode* rf_code) {
         case first_edge:
             RF_OUT = ~RF_OUT;
             if (bit_cnt > 15) {
-                tmp = pollin_rf_rc.pre_code & (1 << bit_cnt - 16);
+                tmp = pollin_rf_rc.pre_code & (1 << bit_cnt - 16 );
             } else {
                 tmp = rf_code->code & (1 << bit_cnt);
             }
@@ -390,7 +390,7 @@ void high_priority interrupt high_isr(void) {
 
     if (PIR1bits.TMR1IF) {
         if (get_raw_code == 1) {
-            if (edge_count != 0 ) timeout = 1;
+//            if (edge_count != 0 ) timeout = 1;
         } else {
             reset_fsm(&ir_rx_fsm);
         }

@@ -36,7 +36,7 @@ int main(void) {
     ir_rx_start();
     rf_tx_start();
 
-#undef __DEBUG    
+//#undef __DEBUG    
 #ifdef __DEBUG
     send_code(&pollin_rf_rc, S2_ON);
     while (1);

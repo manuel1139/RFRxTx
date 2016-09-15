@@ -91,14 +91,14 @@ sizeof(sd000),USB_DESCRIPTOR_STRING,{0x0409
 //Manufacturer string descriptor
 const struct{uint8_t bLength;uint8_t bDscType;uint16_t string[25];}sd001={
 sizeof(sd001),USB_DESCRIPTOR_STRING,
-{'M','i','c','r','o','c','h','i','p',' ',
+{'M','K','C',' ','M','a','n','u','e','l',
 'T','e','c','h','n','o','l','o','g','y',' ','I','n','c','.'
 }};
 
 //Product string descriptor
 const struct{uint8_t bLength;uint8_t bDscType;uint16_t string[22];}sd002={
 sizeof(sd002),USB_DESCRIPTOR_STRING,
-{'S','i','m','p','l','e',' ','H','I','D',' ',
+{'H','o','m','e',' ','F','u','n',' ',' ',' ',
 'D','e','v','i','c','e',' ','D','e','m','o'
 }};
 
